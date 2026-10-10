@@ -15,5 +15,8 @@ const native = (window as unknown as { Capacitor?: { isNativePlatform?: () => bo
 if (native) {
   void import('./native/native').then((m) => m.initNative());
 } else if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-  void import('./pwa').then((m) => m.registerPwa());
+  // Register after the page has loaded so it never competes with first paint.
+  const register = () => void import('./pwa').then((m) => m.registerPwa());
+  if (document.readyState === 'complete') setTimeout(register, 1000);
+  else window.addEventListener('load', () => setTimeout(register, 1000), { once: true });
 }

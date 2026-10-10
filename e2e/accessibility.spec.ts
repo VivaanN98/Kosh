@@ -53,3 +53,19 @@ test('theme preference switches and persists', async ({ page }, info) => {
   await page.getByTestId('theme-system').click();
   await expect(page.locator('html')).not.toHaveAttribute('data-theme', /.+/);
 });
+
+test('first screens are visible immediately (never waiting on deferred animation code)', async ({ browser, page }, info) => {
+  test.skip(info.project.name !== 'mobile', 'mobile');
+  // Signed-out: the sign-in screen.
+  const fresh = await browser.newContext();
+  const auth = await fresh.newPage();
+  await auth.goto('/');
+  await auth.getByLabel('Email').waitFor();
+  expect(await auth.evaluate(() => getComputedStyle(document.querySelector('main')!).opacity)).toBe('1');
+  await fresh.close();
+  // Signed-in: a cold load straight into a page.
+  await signIn(page);
+  await page.goto('/accounts');
+  await page.getByText('Everything you hold and owe', { exact: false }).waitFor();
+  expect(await page.evaluate(() => getComputedStyle(document.querySelector('main')!).opacity)).toBe('1');
+});

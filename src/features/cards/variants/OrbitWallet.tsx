@@ -75,7 +75,7 @@ export function OrbitWallet({ cards, state, onEdit }: { cards: PaymentCard[]; st
                 tabIndex={-1}
                 className={`absolute left-1/2 top-4 rounded-[18px] ${wallet.justAdded === c.id ? 'ring-2 ring-[var(--mint)]' : ''}`}
                 style={{ width: cardW, marginLeft: -cardW / 2, zIndex: 50 - a, transformOrigin: '50% 120%', pointerEvents: a > 2 ? 'none' : 'auto' }}
-                initial={{ opacity: 0, scale: 0.8, y: 40 }}
+                initial={wallet.justAdded === c.id ? { opacity: 0, scale: 0.8, y: 40 } : false}
                 animate={{
                   x: k * Math.min(46, width * 0.11),
                   y: a * 10,

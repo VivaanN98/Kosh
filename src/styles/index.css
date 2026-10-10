@@ -122,9 +122,14 @@
     border: 1px solid var(--glass-border);
     box-shadow: inset 0 1px 0 var(--highlight);
   }
-  /* Sheets hold dense content: nearly opaque, blur only softens the edges of what is behind. */
+  /*
+   * Sheets hold dense content, so they are opaque: no backdrop blur to recompute every frame while
+   * a sheet slides (measured: 9 long frames → see docs/testing.md). Glass stays on nav and cards.
+   */
   .glass-strong {
-    background: color-mix(in srgb, var(--glass-solid) 94%, transparent);
+    background: var(--glass-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .glass {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -6,7 +6,7 @@ import { m } from 'motion/react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/Button';
 import { Segmented } from '@/components/ui/Segmented';
-import { TextField } from '@/components/ui/bits';
+import { signalPainted, TextField } from '@/components/ui/bits';
 import { springs } from '@/motion/springs';
 
 const schema = z.object({
@@ -17,6 +17,7 @@ type Values = z.infer<typeof schema>;
 
 export default function AuthScreen({ client, onDemo }: { client: SupabaseClient; onDemo: () => void }) {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  useEffect(() => signalPainted(), []);
   const [message, setMessage] = useState<{ tone: 'error' | 'info'; text: string } | null>(null);
   const { register, handleSubmit, formState } = useForm<Values>({ resolver: zodResolver(schema) });
 
@@ -35,7 +36,7 @@ export default function AuthScreen({ client, onDemo }: { client: SupabaseClient;
     <div className="relative flex min-h-dvh items-center justify-center overflow-hidden px-5 py-10">
       <div className="aurora pointer-events-none absolute inset-x-0 top-0 h-[60vh]" aria-hidden="true" />
       <m.main
-        initial={{ opacity: 0, y: 12 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={springs.smooth}
         className="relative w-full max-w-[400px]"

@@ -11,7 +11,7 @@ import { formatMonth, formatRelativeDay, monthKey } from '@/lib/dates';
 import { formatINR } from '@/lib/money';
 import type { Transaction } from '@/domain/types';
 import { TransactionRow } from './TransactionRow';
-import { TransactionDetailSheet } from './TransactionDetailSheet';
+import { LazyTransactionDetailSheet as TransactionDetailSheet } from './LazyTransactionDetailSheet';
 import { matchesQuery, type TypeFilter, typeMatches } from './filter';
 
 const PAGE = 60;

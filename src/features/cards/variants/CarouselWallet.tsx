@@ -167,7 +167,7 @@ function CarouselItem({
         onClick={onClick}
         className={`block rounded-[18px] ${justAdded ? 'ring-2 ring-[var(--mint)]' : ''}`}
         style={{ width, scale, opacity }}
-        initial={{ y: 40 }}
+        initial={justAdded ? { y: 40, opacity: 0 } : false}
         animate={{ y: 0 }}
         data-testid={`carousel-card-${card.id}`}
       >

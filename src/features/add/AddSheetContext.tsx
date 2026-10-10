@@ -37,8 +37,14 @@ export function AddSheetProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const idle = (window as Window & { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback;
     const preload = () => void loadSheet().then(() => setMounted(true));
-    if (idle) idle(preload);
-    else setTimeout(preload, 800);
+    // After the first page paints: still well before anyone reaches for the + button.
+    const onPainted = () => (idle ? idle(preload) : setTimeout(preload, 200));
+    window.addEventListener('kosh:painted', onPainted, { once: true });
+    const fallback = setTimeout(preload, 5000);
+    return () => {
+      window.removeEventListener('kosh:painted', onPainted);
+      clearTimeout(fallback);
+    };
   }, []);
 
   const open = useCallback((preset: AddPreset = {}) => {

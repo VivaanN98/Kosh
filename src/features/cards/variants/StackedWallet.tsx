@@ -50,7 +50,7 @@ export function StackedWallet({ cards, state, onEdit }: { cards: PaymentCard[]; 
 
   return (
     <WalletFrame cards={cards} state={state} onEdit={onEdit}>
-      <div ref={ref} className="relative w-full" style={{ height, clipPath: 'inset(-24px -24px 0 -24px)' }} role="list" aria-label="Cards">
+      <div ref={ref} className="relative w-full" style={{ height, clipPath: open ? 'inset(-40px -40px 0 -40px)' : undefined }} role="list" aria-label="Cards">
         <AnimatePresence initial={false}>
           {cards.map((c, i) => {
             const p = position(i, c.id);

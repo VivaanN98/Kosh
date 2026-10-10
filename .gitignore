@@ -30,3 +30,6 @@ android/keystore.properties
 *.jks
 *.keystore
 dist-apk/
+.perf.mjs
+.fps.mjs
+.dbg2.mjs

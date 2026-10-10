@@ -1,5 +1,5 @@
 import { m } from 'motion/react';
-import { forwardRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+import { forwardRef, useEffect, useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { springs } from '@/motion/springs';
 
@@ -46,12 +46,31 @@ export function Section({ title, action, children, className = '' }: { title?: R
   );
 }
 
+let painted = false;
+
+/**
+ * Motion's animation features load only after the first page paints (bundle size). Anything on that
+ * first screen must therefore render in its final state rather than wait for an entrance animation.
+ */
+export function useIsFirstPaint(): boolean {
+  return useState(() => !painted)[0];
+}
+
+export function signalPainted() {
+  if (painted) return;
+  painted = true;
+  requestAnimationFrame(() => setTimeout(() => window.dispatchEvent(new Event('kosh:painted')), 0));
+}
+
 /** Fade + rise for route content. Transform/opacity only. */
 export function Page({ children, className = '' }: { children: ReactNode; className?: string }) {
+  const first = useIsFirstPaint();
+  // The first real page on screen releases deferred loaders (motion features, preloads).
+  useEffect(() => signalPainted(), []);
   return (
     <m.main
       id="main"
-      initial={{ opacity: 0, y: 8 }}
+      initial={first ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={springs.smooth}
       className={`mx-auto w-full max-w-[var(--content-max)] px-4 pb-[calc(var(--tabbar-h)+40px+var(--safe-bottom))] pt-[calc(12px+var(--safe-top))] md:px-8 md:pb-16 md:pt-8 ${className}`}

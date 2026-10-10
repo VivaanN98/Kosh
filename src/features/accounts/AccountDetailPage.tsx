@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { AnimatePresence } from 'motion/react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { Archive, ArchiveRestore, ArrowLeft, ArrowLeftRight, CreditCard, Pencil, Plus, Scale, Settings2 } from 'lucide-react';
 import { EmptyState, Page, Progress, Section, TextField } from '@/components/ui/bits';
@@ -11,7 +12,7 @@ import { useToast } from '@/components/ui/Toast';
 import { useDerived, useSnapshot, useStore } from '@/data/hooks';
 import { useAddSheet } from '@/features/add/AddSheetContext';
 import { TransactionRow } from '@/features/activity/TransactionRow';
-import { TransactionDetailSheet } from '@/features/activity/TransactionDetailSheet';
+import { LazyTransactionDetailSheet as TransactionDetailSheet } from '@/features/activity/LazyTransactionDetailSheet';
 import { formatDate, formatRelativeDay } from '@/lib/dates';
 import { formatINR, parseRupees, ratioBps, toDecimalString } from '@/lib/money';
 import { nextStatementDate, statementStatus } from '@/domain/statements';
@@ -214,6 +215,7 @@ function AccountDetail({ account: a }: { account: Account }) {
           <div className="card p-6 text-center text-[14px] text-text-3">No transactions yet.</div>
         ) : (
           <ul className="card p-1.5" data-testid="account-history">
+            <AnimatePresence initial={false}>
             {history.slice(0, 200).map(({ t, after }) => (
               <div key={t.id} className="relative">
                 <TransactionRow t={t} d={d} onOpen={setSelected} showDate contextAccountId={a.id} />
@@ -222,6 +224,7 @@ function AccountDetail({ account: a }: { account: Account }) {
                 </span>
               </div>
             ))}
+            </AnimatePresence>
           </ul>
         )}
       </Section>

@@ -10,7 +10,7 @@ import { useToast } from '@/components/ui/Toast';
 import { useDerived, useSnapshot, useStore } from '@/data/hooks';
 import { useAddSheet } from '@/features/add/AddSheetContext';
 import { TransactionRow } from '@/features/activity/TransactionRow';
-import { TransactionDetailSheet } from '@/features/activity/TransactionDetailSheet';
+import { LazyTransactionDetailSheet as TransactionDetailSheet } from '@/features/activity/LazyTransactionDetailSheet';
 import { budgetStatus } from '@/domain/budgets';
 import { categoryTotals, rollUpToParents } from '@/domain/ledger/metrics';
 import { cumulativeDailySpending } from '@/domain/reports';
