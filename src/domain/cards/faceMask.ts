@@ -30,6 +30,17 @@ const NETWORK_WORD = /VISA|MASTER|RUPAY|AMEX|AMERICAN|EXPRESS|DINERS|DISCOVER|JC
 const DATE_LIKE = /^\D*\d{1,2}\s*[/-]\s*\d{2,4}\D*$/;
 const clamp = (v: number) => Math.max(0, Math.min(1, v));
 
+/**
+ * Zones that are removed on EVERY card face, whatever OCR found. Embossed or glare-covered numbers
+ * are often unreadable to OCR, so masking only what was read could keep a full number in the
+ * picture. On ISO/IEC 7810 ID-1 cards the number line sits in the middle band and the name and
+ * expiry in the lower-left; the bank name (top) and network mark (lower-right) stay visible.
+ */
+export const STANDARD_SENSITIVE_ZONES: readonly Rect[] = [
+  { x0: 0.03, y0: 0.47, x1: 0.97, y1: 0.7 }, // card number line
+  { x0: 0.03, y0: 0.68, x1: 0.7, y1: 0.97 }, // name, expiry, "VALID THRU"
+];
+
 export function sensitiveRects(words: readonly FaceWord[]): Rect[] {
   const rects: Rect[] = [];
   for (const w of words) {

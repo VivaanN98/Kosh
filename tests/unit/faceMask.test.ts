@@ -3,7 +3,7 @@
  * filled from their surroundings without any of the original pixels surviving.
  */
 import { describe, expect, it } from 'vitest';
-import { inpaint, maskFromRects, sensitiveRects, type FaceWord } from '@/domain/cards/faceMask';
+import { inpaint, maskFromRects, sensitiveRects, STANDARD_SENSITIVE_ZONES, type FaceWord } from '@/domain/cards/faceMask';
 
 const word = (text: string, x0: number, y0: number, x1: number, y1: number, confidence = 90): FaceWord => ({ text, x0, y0, x1, y1, confidence });
 const covers = (rects: ReturnType<typeof sensitiveRects>, x: number, y: number) => rects.some((r) => x >= r.x0 && x <= r.x1 && y >= r.y0 && y <= r.y1);
@@ -71,5 +71,19 @@ describe('inpaint', () => {
       expect(data[i * 4]).toBeLessThan(40);
       expect(Math.abs(data[i * 4 + 2]! - (100 + x * 3))).toBeLessThan(14);
     }
+  });
+});
+
+describe('standard zones (masked even when OCR reads nothing)', () => {
+  it('cover the number line and the name/expiry area of an ID-1 card, but not the bank name or network mark', () => {
+    const z = [...STANDARD_SENSITIVE_ZONES];
+    // number line (embossed digits typically centred around 55-62% height)
+    for (const x of [0.08, 0.3, 0.5, 0.7, 0.92]) expect(covers(z, x, 0.58)).toBe(true);
+    // cardholder name and expiry, lower-left
+    expect(covers(z, 0.1, 0.88)).toBe(true);
+    expect(covers(z, 0.45, 0.75)).toBe(true);
+    // bank name (top-left) and network logo (bottom-right) stay
+    expect(covers(z, 0.15, 0.12)).toBe(false);
+    expect(covers(z, 0.85, 0.88)).toBe(false);
   });
 });

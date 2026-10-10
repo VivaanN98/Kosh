@@ -4,15 +4,15 @@
  * read again on-device; if anything digit-like is still found it is removed too, and if digits
  * survive two rounds no picture is kept at all (the colour template is used instead).
  */
-import { inpaint, maskFromRects, sensitiveRects, type FaceWord } from '@/domain/cards/faceMask';
+import { inpaint, maskFromRects, sensitiveRects, STANDARD_SENSITIVE_ZONES, type FaceWord, type Rect } from '@/domain/cards/faceMask';
 
 export const FACE_WIDTH = 640;
 const MAX_ROUNDS = 2;
 
 type Reader = (canvas: HTMLCanvasElement) => Promise<FaceWord[]>;
 
-function erase(canvas: HTMLCanvasElement, words: readonly FaceWord[]): boolean {
-  const rects = sensitiveRects(words);
+function erase(canvas: HTMLCanvasElement, words: readonly FaceWord[], extra: readonly Rect[] = []): boolean {
+  const rects = [...extra, ...sensitiveRects(words)];
   if (rects.length === 0) return false;
   const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
   const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -31,7 +31,8 @@ export async function cleanCardFace(card: HTMLCanvasElement, words: readonly Fac
     const ctx = c.getContext('2d', { willReadFrequently: true })!;
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(card, 0, 0, c.width, c.height);
-    erase(c, words);
+    // Always remove the standard number/name zones first (covers numbers OCR could not read).
+    erase(c, words, STANDARD_SENSITIVE_ZONES);
     let clean = false;
     for (let round = 0; round < MAX_ROUNDS && !clean; round++) {
       const found = await read(c);
