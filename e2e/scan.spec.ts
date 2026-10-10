@@ -76,7 +76,7 @@ async function fakeCamera(page: Page, mode: CameraMode) {
 }
 
 async function openAddCard(page: Page) {
-  await page.goto('/design-lab/cards');
+  await page.goto('/accounts');
   await page.getByTestId('wallet-add').click();
   await expect(page.getByTestId('choose-scan')).toBeVisible();
 }

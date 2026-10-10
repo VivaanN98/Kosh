@@ -9,13 +9,15 @@ React Hook Form + Zod 4 · Recharts 3 · date-fns 4 + `@date-fns/tz` · Supabase
 Vitest 5 + React Testing Library · Playwright.
 
 Additions beyond the original spec, and why:
-- `react-router` 7 — deep links (`/design-lab/cards`, `/accounts/:id`), back-button behaviour and lazy routes.
+- `react-router` 7 — deep links (`/accounts/:id`, `/plans/:tab`, `/settings#card-style`), back-button behaviour and lazy routes.
   Pinned to 7.x because 8.x requires Node ≥ 22.22 and this machine runs 22.14.
 - `idb` — tiny (~1 KB) promise wrapper over IndexedDB for Demo Mode; loaded only in Demo Mode.
 - `fake-indexeddb` (dev) — runs the Demo adapter under Vitest.
 - `supabase` (dev) — the CLI, pinned per-project instead of a global install.
-- `vite-plugin-mkcert` (dev) — trusted local HTTPS so the camera works on a phone. Pinned to 1.17.x
-  because 2.x requires Node ≥ 22.19.
+- `tesseract.js` 7 — on-device OCR for card scanning, chosen after measuring candidates on synthetic cards
+  (docs/ocr.md). Self-hosted under `/ocr` (copied by `scripts/copy-ocr-assets.mjs`), lazy-loaded after Scan.
+- `@tesseract.js-data/eng` (dev) — the English model file copied into `/ocr`.
+- Phone testing uses a Cloudflare quick tunnel (`cloudflared` in `.tools/` or installed) instead of local certs.
 - `typescript` pinned to 6.0.x because `typescript-eslint` 8 supports `<6.1`.
 - `jsdom` pinned to 29.x because 30.x requires Node ≥ 22.22.
 
@@ -24,8 +26,9 @@ Additions beyond the original spec, and why:
 | Task | Command |
 | --- | --- |
 | Install | `npm install` |
-| Dev (HTTPS, LAN-visible cert) | `npm run dev` → https://localhost:5173 |
-| Dev on phone | `npm run dev:lan` → https://<LAN-IP>:5173 (see docs/deployment.md for trusting the cert) |
+| Dev | `npm run dev` → http://localhost:5173 (local Supabase proxied at `/sb`) |
+| Dev on phone (https tunnel) | `npm run dev:phone` → prints a `https://…trycloudflare.com` link |
+| OCR evaluation | `npm run ocr:eval` (re-runs the engine comparison on synthetic cards) |
 | Build | `npm run build` |
 | Serve build | `npm start` → http://localhost:4173 |
 | Unit + adapter tests | `npm test` |
@@ -51,7 +54,8 @@ src/
   motion/         springs.ts — the ONLY place spring presets are defined
   styles/         tokens.css (all design tokens), index.css
   components/     ui primitives (Sheet, Toast, Keypad, Skeleton, Glass…), cards/
-  features/       home, activity, add, accounts, cards, plans, insights, settings, auth, design-lab
+  features/       home, activity, add, accounts, cards (3 wallet variants + scan), plans, insights,
+                  settings (incl. Card style), auth
 tests/
   vectors/        ledger test vectors (data) + runner, executed against BOTH adapters
   unit/           adapter + domain tests (jsdom)
@@ -104,6 +108,8 @@ docs/             architecture, database, security, deployment, testing
 - Tabular numerals for money. Translucency only on nav, sheets and cards — never behind dense text.
 - 44px minimum touch targets, visible focus rings, WCAG AA contrast in both themes.
 - Home shows at most two charts. Destructive actions use undo toasts.
+- Cards: three wallet variants (Stacked — default, Orbit, Vertical Carousel) share one set of components,
+  data and selection state. The user picks one in Settings → Card style (`useCardVariant`).
 
 ## Privacy rules (cards)
 

@@ -5,25 +5,25 @@ import { useSnapshot } from '@/data/hooks';
 import type { PaymentCard } from '@/domain/types';
 import { AddCardSheet } from './AddCardSheet';
 import { Wallet } from './Wallet';
-import { readVariant, WalletProvider } from './WalletContext';
+import { useCardVariant, WalletProvider } from './WalletContext';
 
-/** Cards inside Accounts, using the variant picked in the Design Lab (until one is finalised). */
+/** Cards inside Accounts, shown in the style chosen in Settings → Card style. */
 export function CardsSection() {
   const snap = useSnapshot();
   const cards = useMemo(() => snap.cards.filter((c) => !c.archivedAt), [snap.cards]);
   const [editing, setEditing] = useState<PaymentCard | null>(null);
-  const [variant] = useState(readVariant);
+  const [variant] = useCardVariant();
   return (
     <WalletProvider>
       <Section
         title="Cards"
         action={
-          <Link to="/design-lab/cards" className="text-[13px] font-medium text-text-2 hover:text-text">
-            Design Lab
+          <Link to="/settings#card-style" className="tap -mr-2 inline-flex items-center rounded-[12px] px-2 text-[13px] font-medium text-text-2 hover:text-text">
+            Card style
           </Link>
         }
       >
-        <div className="mx-auto max-w-[420px]">
+        <div className="mx-auto max-w-[420px]" data-testid={`wallet-${variant}`}>
           <Wallet variant={variant} cards={cards} onEdit={setEditing} />
         </div>
       </Section>

@@ -1,5 +1,5 @@
 import { lazy } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { BackendProvider } from '@/data/BackendProvider';
 import { MotionProvider } from '@/motion/MotionProvider';
 import { ToastProvider } from '@/components/ui/Toast';
@@ -15,7 +15,6 @@ const AccountsPage = lazy(() => import('@/features/accounts/AccountsPage'));
 const AccountDetailPage = lazy(() => import('@/features/accounts/AccountDetailPage'));
 const PlansPage = lazy(() => import('@/features/plans/PlansPage'));
 const SettingsPage = lazy(() => import('@/features/settings/SettingsPage'));
-const DesignLabCards = lazy(() => import('@/features/design-lab/DesignLabCards'));
 const NotFound = lazy(() => import('./NotFound'));
 
 export function App() {
@@ -36,7 +35,8 @@ export function App() {
                     <Route path="plans" element={<PlansPage />} />
                     <Route path="plans/:tab" element={<PlansPage />} />
                     <Route path="settings" element={<SettingsPage />} />
-                    <Route path="design-lab/cards" element={<DesignLabCards />} />
+                    {/* The comparison lab was retired: card style now lives in Settings. */}
+                    <Route path="design-lab/cards" element={<Navigate to="/settings#card-style" replace />} />
                     <Route path="*" element={<NotFound />} />
                   </Route>
                 </Routes>

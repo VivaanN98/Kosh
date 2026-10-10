@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { Archive, ArchiveRestore, Database, Download, FlaskConical, LogOut, Plus, RotateCcw, ShieldCheck } from 'lucide-react';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { useLocation } from 'react-router';
+import { Skeleton } from '@/components/ui/bits';
+import { Archive, ArchiveRestore, Database, Download, LogOut, Plus, RotateCcw, ShieldCheck } from 'lucide-react';
 import { Page, PageHeader, Section, SelectField, TextField } from '@/components/ui/bits';
 import { Button } from '@/components/ui/Button';
 import { Segmented } from '@/components/ui/Segmented';
@@ -10,8 +12,18 @@ import { getReducedTransparency, getTheme, setReducedTransparency, setTheme, typ
 import { toKoshError } from '@/domain/errors';
 import type { CategoryKind } from '@/domain/types';
 
+// The wallet variants (and their motion features) load only when Settings is opened.
+const CardStyleSection = lazy(() => import('./CardStyleSection'));
+
 export default function SettingsPage() {
   const { mode, userEmail, signOut } = useBackend();
+  const location = useLocation();
+  // Deep link: /settings#card-style scrolls to the card style picker.
+  useEffect(() => {
+    if (!location.hash) return;
+    const t = setTimeout(() => document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: 'start' }), 300);
+    return () => clearTimeout(t);
+  }, [location.hash]);
   const snap = useSnapshot();
   const store = useStore();
   const toast = useToast();
@@ -93,6 +105,10 @@ export default function SettingsPage() {
         </div>
       </Section>
 
+      <Suspense fallback={<Skeleton className="mb-8 h-[320px] w-full rounded-[18px]" />}>
+        <CardStyleSection />
+      </Suspense>
+
       <CategoriesSection />
 
       <Section title="Your data">
@@ -122,12 +138,6 @@ export default function SettingsPage() {
         </div>
       </Section>
 
-      <Section title="Labs">
-        <a href="/design-lab/cards" className="card flex min-h-[56px] items-center gap-3 p-4 hover:bg-surface-2">
-          <FlaskConical size={18} className="text-text-2" aria-hidden="true" />
-          <span className="text-[15px]">Card Design Lab</span>
-        </a>
-      </Section>
 
       <Button variant="danger" icon={<LogOut size={16} />} onClick={() => void signOut()} data-testid="sign-out">
         {mode === 'demo' ? 'Leave Demo Mode' : 'Sign out'}

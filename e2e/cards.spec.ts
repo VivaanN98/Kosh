@@ -3,16 +3,20 @@ import { admin, signIn, user } from './helpers';
 
 test.describe.configure({ mode: 'serial' });
 
-test('design lab shows all three variants side by side on desktop', async ({ page }, info) => {
-  test.skip(info.project.name !== 'desktop', 'desktop comparison');
+test('card style lives in Settings: Stacked by default, all three selectable, persisted, used in Accounts', async ({ page }, info) => {
+  test.skip(info.project.name !== 'desktop', 'desktop');
   await signIn(page);
-  await page.goto('/design-lab/cards');
-  await expect(page.getByTestId('lab-compare')).toBeVisible();
-  for (const v of ['stacked', 'orbit', 'carousel']) await expect(page.getByTestId(`lab-panel-${v}`)).toBeVisible();
-  // Both seeded cards appear in every variant.
-  await expect(page.getByLabel(/SBI Global International, visa debit, linked to SBI Savings/)).toHaveCount(3);
-  await expect(page.getByLabel(/Debit Platinum, rupay debit, linked to Indian Bank Savings/)).toHaveCount(3);
+  await page.goto('/design-lab/cards'); // retired route redirects to Settings
+  await expect(page).toHaveURL(/\/settings#card-style$/);
+  const style = page.getByTestId('card-style');
+  await expect(style.getByTestId('preview-stacked')).toBeVisible();
+  await expect(style.getByLabel(/SBI Global International, visa debit, linked to SBI Savings/)).toHaveCount(1);
+  for (const v of ['orbit', 'carousel', 'stacked'] as const) {
+    await style.getByTestId(`variant-${v}`).click();
+    await expect(style.getByTestId(`preview-${v}`)).toBeVisible();
+  }
   // Orbit is keyboard operable.
+  await style.getByTestId('variant-orbit').click();
   const deck = page.getByTestId('orbit-deck');
   const focused = deck.locator('[role=option][aria-selected=true]');
   const before = await focused.getAttribute('aria-label');
@@ -21,28 +25,33 @@ test('design lab shows all three variants side by side on desktop', async ({ pag
   await expect(focused).not.toHaveAttribute('aria-label', before!);
   await page.keyboard.press('Enter');
   await expect(page.getByTestId('card-details').first()).toBeVisible();
+  // Persisted and applied to Accounts.
+  await page.reload();
+  await expect(page.getByTestId('card-style').getByTestId('variant-orbit')).toHaveAttribute('aria-checked', 'true');
+  await page.goto('/accounts');
+  await expect(page.getByTestId('wallet-orbit')).toBeVisible();
+  await page.goto('/settings#card-style');
+  await page.getByTestId('card-style').getByTestId('variant-stacked').click();
 });
 
-test('mobile variant selector switches variants and keeps the selection', async ({ page }, info) => {
+test('switching card style keeps the selected card (mobile)', async ({ page }, info) => {
   test.skip(info.project.name !== 'mobile', 'mobile selector');
   await signIn(page);
-  await page.goto('/design-lab/cards');
-  await page.getByTestId('variant-orbit').click();
-  await page.getByRole('button', { name: 'Next card' }).click();
-  const selected = await page.locator('[role=option][aria-selected=true]').getAttribute('aria-label');
-  await page.getByTestId('variant-carousel').click();
-  await expect(page.locator('[role=option][aria-selected=true]')).toHaveAttribute('aria-label', selected!);
-  await page.getByTestId('variant-stacked').click();
-  await expect(page.getByTestId('lab-panel-stacked')).toBeVisible();
-  // Persisted locally.
-  await page.reload();
-  await expect(page.getByTestId('variant-stacked')).toHaveAttribute('aria-checked', 'true');
+  await page.goto('/settings#card-style');
+  const style = page.getByTestId('card-style');
+  await style.getByTestId('variant-orbit').click();
+  await style.getByRole('button', { name: 'Next card' }).click();
+  const selected = await style.locator('[role=option][aria-selected=true]').getAttribute('aria-label');
+  await style.getByTestId('variant-carousel').click();
+  await expect(style.locator('[role=option][aria-selected=true]')).toHaveAttribute('aria-label', selected!);
+  await style.getByTestId('variant-stacked').click();
+  await expect(style.getByTestId('preview-stacked')).toBeVisible();
 });
 
 test('manual add card: saved with sanitized fields only and animated into the wallet', async ({ page }, info) => {
   test.skip(info.project.name !== 'mobile', 'mobile flow');
   await signIn(page);
-  await page.goto('/design-lab/cards');
+  await page.goto('/accounts');
   await page.getByTestId('wallet-add').click();
   await page.getByTestId('choose-manual').click();
   const form = page.getByTestId('card-form');
