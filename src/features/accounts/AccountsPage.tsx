@@ -14,6 +14,7 @@ import type { Account } from '@/domain/types';
 import { CardsSection } from '@/features/cards/CardsSection';
 import { AccountFormSheet } from './AccountFormSheet';
 import { paidSince } from './cardMath';
+import { accountIcon } from './accountIcon';
 
 const GROUPS: { kind: Account['kind']; title: string }[] = [
   { kind: 'bank', title: 'Bank accounts' },
@@ -21,10 +22,6 @@ const GROUPS: { kind: Account['kind']; title: string }[] = [
   { kind: 'credit_card', title: 'Credit cards' },
   { kind: 'goal', title: 'Goal pots' },
 ];
-
-export function accountIcon(a: Account): string {
-  return a.kind === 'cash' ? 'wallet' : a.kind === 'credit_card' ? 'credit-card' : a.kind === 'goal' ? 'piggy-bank' : 'landmark';
-}
 
 export default function AccountsPage() {
   const snap = useSnapshot();

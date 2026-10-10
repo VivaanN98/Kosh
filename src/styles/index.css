@@ -91,8 +91,8 @@
   }
   .serif {
     font-family: var(--font-display);
-    font-weight: 400;
-    letter-spacing: -0.01em;
+    font-weight: 500;
+    letter-spacing: -0.02em;
   }
   .eyebrow {
     font-size: 11px;
@@ -147,6 +147,24 @@
     background: var(--glass-solid);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
+  }
+
+  /* The floating tab pill sits over colourful tiles: mostly opaque so its labels stay legible. */
+  .glass-bar {
+    background: color-mix(in srgb, var(--glass-solid) 90%, transparent);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass-bar {
+      background: var(--glass-solid);
+    }
+  }
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    .glass-bar {
+      background: var(--glass-solid);
+    }
+  }
+  :root[data-transparency='reduced'] .glass-bar {
+    background: var(--glass-solid);
   }
 
   .hairline-b {

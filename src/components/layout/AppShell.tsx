@@ -61,7 +61,7 @@ function AddButton({ size = 'md' }: { size?: 'md' | 'lg' }) {
       transition={springs.snappy}
       aria-label="Add transaction"
       data-testid="add-button"
-      className={`${dim} inline-flex items-center justify-center rounded-[18px] bg-text text-text-inverse shadow-2`}
+      className={`${dim} inline-flex items-center justify-center rounded-[18px] bg-text text-text-inverse shadow-2 max-md:rounded-full`}
     >
       <Plus size={24} strokeWidth={2.2} aria-hidden="true" />
     </m.button>
@@ -72,7 +72,7 @@ function SideNav() {
   return (
     <nav aria-label="Primary" className="fixed inset-y-0 left-0 z-40 hidden w-[var(--sidebar-w)] flex-col items-center border-r border-line bg-bg-elevated py-6 md:flex">
       <NavLink to="/" aria-label="Kosh home" className="mb-8 flex h-10 w-10 items-center justify-center rounded-[13px] bg-text text-text-inverse">
-        <span className="serif text-[22px] italic leading-none">k</span>
+        <span className="serif text-[22px] leading-none">k</span>
       </NavLink>
       <div className="mb-6">
         <AddButton />
@@ -111,12 +111,12 @@ function SideNav() {
 function TabBar() {
   const items = [NAV[0], NAV[1], null, NAV[2], NAV[3]] as const;
   return (
+    // A floating pill, detached from the screen edges; content scrolls underneath it.
     <nav
       aria-label="Primary"
-      className="glass fixed inset-x-0 bottom-0 z-40 border-x-0 border-b-0 pb-[var(--safe-bottom)] md:hidden"
-      style={{ borderTop: '1px solid var(--line)' }}
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(10px+var(--safe-bottom))] md:hidden"
     >
-      <ul className="mx-auto flex h-[var(--tabbar-h)] max-w-[520px] items-center justify-around px-2">
+      <ul className="glass glass-bar pointer-events-auto mx-auto flex h-[var(--tabbar-h)] max-w-[420px] items-center justify-around rounded-full px-2 shadow-3">
         {items.map((item) =>
           item === null ? (
             <li key="add">
@@ -128,18 +128,16 @@ function TabBar() {
                 to={item.to}
                 end={'end' in item}
                 className={({ isActive }) =>
-                  `relative flex h-[52px] w-[64px] flex-col items-center justify-center gap-0.5 rounded-[14px] text-[11px] font-medium ${
-                    isActive ? 'text-text' : 'text-text-3'
+                  `relative flex h-[52px] w-[64px] flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-medium transition-colors ${
+                    isActive ? 'text-mint' : 'text-text-3'
                   }`
                 }
               >
                 {({ isActive }) => (
                   <>
-                    <item.icon size={22} strokeWidth={isActive ? 2.1 : 1.7} aria-hidden="true" />
-                    <span>{item.label}</span>
-                    {isActive && (
-                      <m.span layoutId="tab-dot" className="absolute bottom-0.5 h-1 w-1 rounded-full bg-text" transition={springs.snappy} />
-                    )}
+                    {isActive && <m.span layoutId="tab-pill" className="absolute inset-0 rounded-full bg-surface-2" transition={springs.snappy} />}
+                    <item.icon size={22} strokeWidth={isActive ? 2.1 : 1.7} className="relative" aria-hidden="true" />
+                    <span className="relative">{item.label}</span>
                   </>
                 )}
               </NavLink>

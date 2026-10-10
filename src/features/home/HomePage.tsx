@@ -17,6 +17,7 @@ import { cumulativeDailySpending } from '@/domain/reports';
 import { formatDate, formatMonth, formatRelativeDay, monthEnd, monthStart, shiftMonth } from '@/lib/dates';
 import { formatINR, formatINRCompact, ratioBps } from '@/lib/money';
 import { springs } from '@/motion/springs';
+import { AccountTiles } from './AccountTiles';
 import { toKoshError } from '@/domain/errors';
 import type { Transaction } from '@/domain/types';
 
@@ -43,9 +44,9 @@ export default function HomePage() {
         <div className="aurora pointer-events-none absolute -inset-x-8 -top-24 h-[340px] md:-top-32" aria-hidden="true" />
         <header className="relative mb-6 pt-1">
           <p className="eyebrow mb-2">{formatDate(d.today, 'EEEE, d MMMM')}</p>
-          <h1 className="serif text-[34px] leading-[1.05] md:text-[40px]">
+          <h1 className="serif text-[30px] leading-[1.1] md:text-[36px]">
             {greeting()}
-            {name ? <span className="italic text-text-2">, {name}</span> : null}
+            {name ? <span className="text-text-2">, {name}</span> : null}
           </h1>
         </header>
 
@@ -59,6 +60,8 @@ export default function HomePage() {
           </div>
         </section>
       </div>
+
+      <AccountTiles />
 
       <div className="grid gap-5 md:grid-cols-[1.25fr_1fr]">
         <MonthCard />

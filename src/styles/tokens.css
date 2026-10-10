@@ -64,11 +64,12 @@
   --radius-md: 16px;
   --radius-lg: 22px;
   --radius-xl: 28px;
-  --radius-card: 18px;
+  --radius-card: 22px;
 
   /* Type */
   --font-ui: 'Geist', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  /* One family: headings are the UI face at medium weight (simple, friendly, no serif). */
+  --font-display: var(--font-ui);
   --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
   /* Layout */
@@ -78,6 +79,20 @@
   /* Capacitor (Android app) injects --safe-area-inset-*; browsers use env(). */
   --safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
   --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+
+  /* Colour tiles (Home accounts): white text passes AA on the lighter stop (4.5:1 or better). */
+  --tile-1-from: #2b6bd9;
+  --tile-1-to: #1d49a6;
+  --tile-2-from: #c93a2a;
+  --tile-2-to: #962232;
+  --tile-3-from: #7d3ccf;
+  --tile-3-to: #53279a;
+  --tile-4-from: #0f7d73;
+  --tile-4-to: #0b5560;
+  --tile-5-from: #c72a65;
+  --tile-5-to: #8f1c55;
+  --tile-6-from: #5252cc;
+  --tile-6-to: #36368f;
 
   /* Charts: validated categorical palette (dataviz reference; fixed order, never cycled). */
   --chart-1: #2a78d6;

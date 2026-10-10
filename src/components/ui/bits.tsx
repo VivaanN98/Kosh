@@ -13,7 +13,7 @@ export function EmptyState({ icon, title, body, action }: { icon: ReactNode; tit
       <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-[18px] bg-surface-2 text-text-2" aria-hidden="true">
         {icon}
       </div>
-      <p className="serif text-[22px] leading-tight">{title}</p>
+      <p className="serif text-[20px] leading-tight">{title}</p>
       {body && <p className="mt-1.5 max-w-[30ch] text-[14px] text-text-2">{body}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
@@ -25,7 +25,7 @@ export function PageHeader({ eyebrow, title, actions }: { eyebrow?: string; titl
     <header className="mb-6 flex items-end justify-between gap-4 pt-2">
       <div>
         {eyebrow && <p className="eyebrow mb-2">{eyebrow}</p>}
-        <h1 className="serif text-[34px] leading-[1.05] tracking-[-0.01em] md:text-[40px]">{title}</h1>
+        <h1 className="serif text-[30px] leading-[1.1] md:text-[36px]">{title}</h1>
       </div>
       {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
     </header>

@@ -20,7 +20,7 @@ import { toKoshError } from '@/domain/errors';
 import { NETWORK_LABEL } from '@/domain/cards/artwork';
 import type { Account, Transaction } from '@/domain/types';
 import { ReconcileSheet } from './ReconcileSheet';
-import { accountIcon } from './AccountsPage';
+import { accountIcon } from './accountIcon';
 import { paidSince } from './cardMath';
 
 export default function AccountDetailPage() {
@@ -93,7 +93,7 @@ function AccountDetail({ account: a }: { account: Account }) {
       <header className="mb-6 flex items-center gap-4">
         <IconTile name={accountIcon(a)} color={a.color} size={52} iconSize={24} />
         <div className="min-w-0">
-          <h1 className="serif truncate text-[32px] leading-tight">{a.name}</h1>
+          <h1 className="serif truncate text-[28px] leading-tight">{a.name}</h1>
           <p className="text-[13px] text-text-3">
             {[a.institution, { bank: 'Bank account', cash: 'Cash', credit_card: 'Credit card', goal: 'Goal pot' }[a.kind as 'bank'], a.archivedAt ? 'Archived' : null]
               .filter(Boolean)

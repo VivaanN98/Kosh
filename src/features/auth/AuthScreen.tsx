@@ -43,10 +43,10 @@ export default function AuthScreen({ client, onDemo }: { client: SupabaseClient;
       >
         <div className="mb-10">
           <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-[15px] bg-text text-text-inverse">
-            <span className="serif text-[28px] italic leading-none">k</span>
+            <span className="serif text-[26px] leading-none">k</span>
           </div>
-          <h1 className="serif text-[44px] leading-[1.02]">
-            Money, <span className="italic text-text-2">in focus.</span>
+          <h1 className="serif text-[40px] leading-[1.08]">
+            Money, <span className="text-text-2">in focus.</span>
           </h1>
           <p className="mt-3 text-[15px] text-text-2">A calm, exact ledger for everything you earn, spend and save.</p>
         </div>
