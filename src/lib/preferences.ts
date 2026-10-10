@@ -29,6 +29,14 @@ export function setTheme(t: ThemePref) {
   write(THEME, t === 'system' ? null : t);
   if (t === 'system') delete document.documentElement.dataset.theme;
   else document.documentElement.dataset.theme = t;
+  window.dispatchEvent(new Event('kosh:theme'));
+}
+
+/** The theme actually showing (resolves "system"). */
+export function effectiveTheme(): 'light' | 'dark' {
+  const t = getTheme();
+  if (t !== 'system') return t;
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 export function getReducedTransparency(): boolean {

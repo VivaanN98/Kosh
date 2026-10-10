@@ -5,6 +5,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
+!.env.native
 coverage
 playwright-report
 test-results
@@ -21,3 +22,11 @@ certs/
 .dbg.mjs
 .lab.mjs
 public/ocr/
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+android/keystore.properties
+*.jks
+*.keystore
+dist-apk/

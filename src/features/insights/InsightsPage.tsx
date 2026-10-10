@@ -6,7 +6,9 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { m } from 'motion/react';
-import { ChevronLeft, CircleCheck, TriangleAlert } from 'lucide-react';
+import { ChevronLeft, CircleCheck, Sparkles, TriangleAlert } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { AssistantSheet } from './AssistantSheet';
 import { Page, PageHeader, Section } from '@/components/ui/bits';
 import { Segmented } from '@/components/ui/Segmented';
 import { Money } from '@/components/ui/Money';
@@ -27,6 +29,7 @@ export default function InsightsPage() {
   const snap = useSnapshot();
   const { month } = useDerived();
   const [range, setRange] = useState<Range>('6');
+  const [asking, setAsking] = useState(false);
   const months = Number(range);
   const from: MonthKey = shiftMonth(month, -(months - 1));
   const sys = snap.system!;
@@ -42,7 +45,16 @@ export default function InsightsPage() {
 
   return (
     <Page>
-      <PageHeader eyebrow="Derived from your ledger" title="Insights" />
+      <PageHeader
+        eyebrow="Derived from your ledger"
+        title="Insights"
+        actions={
+          <Button size="sm" variant="secondary" icon={<Sparkles size={15} />} onClick={() => setAsking(true)} data-testid="open-assistant">
+            Ask
+          </Button>
+        }
+      />
+      <AssistantSheet open={asking} onClose={() => setAsking(false)} />
       <div className="mb-6">
         <Segmented
           label="Period"

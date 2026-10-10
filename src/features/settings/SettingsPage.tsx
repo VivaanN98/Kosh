@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 import { Skeleton } from '@/components/ui/bits';
+import { InstallSection } from './InstallSection';
 import { Archive, ArchiveRestore, Database, Download, LogOut, Plus, RotateCcw, ShieldCheck } from 'lucide-react';
 import { Page, PageHeader, Section, SelectField, TextField } from '@/components/ui/bits';
 import { Button } from '@/components/ui/Button';
@@ -110,6 +111,8 @@ export default function SettingsPage() {
       </Suspense>
 
       <CategoriesSection />
+
+      <InstallSection />
 
       <Section title="Your data">
         <div className="card space-y-3 p-4">

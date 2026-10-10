@@ -7,6 +7,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { RouteSkeleton } from '@/components/layout/RouteSkeleton';
 import { AddSheetProvider } from '@/features/add/AddSheetContext';
 import { StoreGate } from './StoreGate';
+import { AppEvents } from './AppEvents';
 
 const HomePage = lazy(() => import('@/features/home/HomePage'));
 const ActivityPage = lazy(() => import('@/features/activity/ActivityPage'));
@@ -25,6 +26,7 @@ export function App() {
           <BackendProvider fallback={<BootScreen />}>
             <StoreGate>
               <AddSheetProvider>
+                <AppEvents />
                 <Routes>
                   <Route element={<AppShell />}>
                     <Route index element={<HomePage />} />

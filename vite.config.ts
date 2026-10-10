@@ -2,6 +2,7 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath, URL } from 'node:url';
 
 // Local Supabase is proxied through the dev server at /sb so a phone on the Cloudflare tunnel
@@ -16,7 +17,55 @@ const supabaseProxy = {
 };
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    VitePWA({
+      registerType: 'prompt',
+      injectRegister: false, // registered from src/pwa.ts (skipped inside the Android app)
+      includeAssets: ['icon.svg', 'icons/apple-touch-icon.png'],
+      manifest: {
+        name: 'Kosh — money, in focus',
+        short_name: 'Kosh',
+        description: 'A calm, exact personal finance ledger.',
+        start_url: '/',
+        scope: '/',
+        display: 'standalone',
+        orientation: 'portrait',
+        theme_color: '#0a0b0d',
+        background_color: '#0a0b0d',
+        lang: 'en-IN',
+        categories: ['finance', 'productivity'],
+        icons: [
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+        shortcuts: [{ name: 'Add expense', short_name: 'Add', url: '/?add=expense', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] }],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        globIgnores: ['ocr/**'],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/sb\//, /^\/ocr\//],
+        runtimeCaching: [
+          {
+            // The on-device OCR engine (~7 MB) is cached the first time Scan is used.
+            urlPattern: ({ url }) => url.pathname.startsWith('/ocr/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'kosh-ocr', expiration: { maxEntries: 12 } },
+          },
+          {
+            urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'kosh-fonts', expiration: { maxEntries: 20 } },
+          },
+          // Supabase API calls are never cached: money data always comes from the server.
+        ],
+      },
+      devOptions: { enabled: false },
+    }),
+  ],
   // Only the app entry is scanned for dependencies (scripts/ocr-eval has its own optional engines).
   optimizeDeps: { entries: ['index.html'] },
   resolve: {

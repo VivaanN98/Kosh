@@ -75,8 +75,9 @@
   --sidebar-w: 88px;
   --tabbar-h: 64px;
   --content-max: 1080px;
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-top: env(safe-area-inset-top, 0px);
+  /* Capacitor (Android app) injects --safe-area-inset-*; browsers use env(). */
+  --safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
 
   /* Charts: validated categorical palette (dataviz reference; fixed order, never cycled). */
   --chart-1: #2a78d6;

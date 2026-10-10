@@ -27,9 +27,15 @@
     "dev:phone": "node scripts/phone.mjs",
     "predev": "node scripts/copy-ocr-assets.mjs",
     "prebuild": "node scripts/copy-ocr-assets.mjs",
-    "ocr:eval": "node scripts/ocr-eval/run.mjs"
+    "ocr:eval": "node scripts/ocr-eval/run.mjs",
+    "build:native": "vite build --mode native && cap sync android",
+    "android:apk": "node scripts/build-apk.mjs",
+    "icons": "node scripts/make-icons.mjs"
   },
   "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/core": "8.5.3",
     "@date-fns/tz": "1.5.0",
     "@hookform/resolvers": "5.9.1",
     "@supabase/supabase-js": "2.117.3",
@@ -47,6 +53,7 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
+    "@capacitor/cli": "8.5.3",
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.64.0",
     "@tailwindcss/vite": "4.3.3",
@@ -70,6 +77,8 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.71.1",
     "vite": "8.3.4",
-    "vitest": "5.0.3"
+    "vite-plugin-pwa": "2.0.0",
+    "vitest": "5.0.3",
+    "workbox-window": "7.4.1"
   }
 }
