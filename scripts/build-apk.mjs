@@ -1,5 +1,5 @@
 // Builds the signed Android APK: web build (--mode native) → cap sync → Gradle assembleRelease.
-// Toolchain lives outside the repo (no spaces in path; C: is nearly full): KOSH_ANDROID_HOME
+// Toolchain lives outside the repo (no spaces in the path): KOSH_ANDROID_HOME
 // (default D:\KoshAndroid) holds jdk-21, android-sdk, gradle-home and the release keystore.
 // Output: dist-apk/Kosh-<version>.apk
 import { execSync } from 'node:child_process';

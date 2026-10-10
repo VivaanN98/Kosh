@@ -58,3 +58,12 @@ Create an account on the sign-in screen (local Supabase needs no email confirmat
 - [Deployment](docs/deployment.md): cloud Supabase, the Android app, PWA hosting, the assistant key.
 - [Testing](docs/testing.md): suites, what they prove, performance numbers.
 - [OCR evaluation](docs/ocr.md): how the card-scanning engine was chosen.
+
+## Self-hosting, contributing, license
+
+Kosh has no hosted service: you run your own Supabase project (free tier is enough) and keep your own
+data and keys. Demo Mode needs nothing and keeps fictional data on the device. Setup is in
+[Deployment](docs/deployment.md). Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull
+request and [SECURITY.md](SECURITY.md) before reporting a vulnerability.
+
+Released under the [MIT License](LICENSE).

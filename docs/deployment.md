@@ -26,8 +26,8 @@
 
 ## 2. Android app (APK)
 
-**One-time toolchain**, kept outside the repo in `D:\KoshAndroid` (no spaces in the path; the C:
-drive here is nearly full). Override the location with `KOSH_ANDROID_HOME`.
+**One-time toolchain**, kept outside the repo in a folder with no spaces in its path. Point `KOSH_ANDROID_HOME` at it
+(the script defaults to `D:/KoshAndroid` on Windows).
 - `jdk-21`: Temurin JDK 21 (unzipped)
 - `android-sdk`: command-line tools plus `platform-tools`, `platforms;android-36` and
   `build-tools;36.0.0`. Install the packages with

@@ -10,7 +10,7 @@ Vitest 5 + React Testing Library · Playwright.
 
 Additions beyond the original spec, and why:
 - `react-router` 7 — deep links (`/accounts/:id`, `/plans/:tab`, `/settings#card-style`), back-button behaviour and lazy routes.
-  Pinned to 7.x because 8.x requires Node ≥ 22.22 and this machine runs 22.14.
+  Pinned to 7.x because 8.x requires Node ≥ 22.22 and the development setup runs 22.14.
 - `idb` — tiny (~1 KB) promise wrapper over IndexedDB for Demo Mode; loaded only in Demo Mode.
 - `fake-indexeddb` (dev) — runs the Demo adapter under Vitest.
 - `supabase` (dev) — the CLI, pinned per-project instead of a global install.
@@ -19,7 +19,7 @@ Additions beyond the original spec, and why:
 - `@tesseract.js-data/eng` (dev) — the English model file copied into `/ocr`.
 - Phone testing uses a Cloudflare quick tunnel (`cloudflared` in `.tools/` or installed) instead of local certs.
 - `@capacitor/core`, `@capacitor/android`, `@capacitor/app`, `@capacitor/cli` (dev) — the native Android
-  app the user asked for (installable APK). `@capacitor/app` handles the hardware back button.
+  app (installable APK). `@capacitor/app` handles the hardware back button.
 - `vite-plugin-pwa` + `workbox-window` (dev) — installable PWA (manifest, service worker, update prompt).
 - `typescript` pinned to 6.0.x because `typescript-eslint` 8 supports `<6.1`.
 - `jsdom` pinned to 29.x because 30.x requires Node ≥ 22.22.
@@ -45,7 +45,7 @@ Additions beyond the original spec, and why:
 | New migration | `npm run db:new -- <name>` |
 | Write `.env.local` from local Supabase | `node scripts/write-local-env.mjs` |
 | Serve Edge Functions locally | `npx supabase functions serve` |
-| Android APK (signed) | `npm run android:apk` → `dist-apk/` (toolchain in `D:/KoshAndroid`, see docs/deployment.md) |
+| Android APK (signed) | `npm run android:apk` → `dist-apk/` (toolchain folder set by `KOSH_ANDROID_HOME`, see docs/deployment.md) |
 | Web build for the Android app | `npm run build:native` (`--mode native`, uses `.env.native(.local)`) |
 | App icons from `public/icon.svg` | `npm run icons` |
 
