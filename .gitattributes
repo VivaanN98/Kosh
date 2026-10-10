@@ -3,3 +3,6 @@
 *.jpg binary
 *.webp binary
 *.ico binary
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.jar binary
