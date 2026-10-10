@@ -158,6 +158,17 @@
     min-width: 44px;
   }
 
+  /* Keeps a compact control looking compact while its touch target stays 44px tall. */
+  .hit-y {
+    position: relative;
+  }
+  .hit-y::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block: min(0px, calc((100% - 44px) / 2));
+  }
+
   .skeleton {
     background: linear-gradient(100deg, var(--surface-2) 30%, var(--surface-3) 50%, var(--surface-2) 70%);
     background-size: 300% 100%;
@@ -198,6 +209,33 @@
   }
   100% {
     background-position: 0 0;
+  }
+}
+
+/*
+ * Touch devices: fields at 16px or larger. Below that, iOS Safari zooms the page on focus.
+ * Unlayered on purpose, so it wins over the text-[15px] utilities.
+ */
+@media (pointer: coarse) {
+  input:not([type='range'], [type='checkbox'], [type='radio']),
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}
+
+/* Theme switches ease instead of flashing (a hard dark↔light jump is a brightness jolt). */
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-theme-changing],
+  :root[data-theme-changing] *,
+  :root[data-theme-changing] *::before,
+  :root[data-theme-changing] *::after {
+    transition:
+      background-color 220ms ease,
+      border-color 220ms ease,
+      color 220ms ease,
+      fill 220ms ease,
+      stroke 220ms ease !important;
   }
 }
 

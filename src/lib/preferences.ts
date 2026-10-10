@@ -27,6 +27,10 @@ export function getTheme(): ThemePref {
 
 export function setTheme(t: ThemePref) {
   write(THEME, t === 'system' ? null : t);
+  // Ease the colour change for a moment (see index.css); removed again so normal hovers stay instant.
+  const root = document.documentElement;
+  root.setAttribute('data-theme-changing', '');
+  window.setTimeout(() => root.removeAttribute('data-theme-changing'), 300);
   if (t === 'system') delete document.documentElement.dataset.theme;
   else document.documentElement.dataset.theme = t;
   window.dispatchEvent(new Event('kosh:theme'));

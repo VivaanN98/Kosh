@@ -66,7 +66,7 @@ export const TransactionRow = memo(function TransactionRow({
       <button
         type="button"
         onClick={() => onOpen?.(t)}
-        className="group flex min-h-[60px] w-full items-center gap-3 rounded-[14px] px-2 py-2 text-left transition-colors hover:bg-surface-2"
+        className="group flex min-h-[60px] w-full items-center gap-3 rounded-[14px] px-2 py-2 text-left transition-colors hover:bg-surface-2 active:bg-surface-3"
         data-testid="tx-row"
       >
         <IconTile name={v.icon} color={v.color} />

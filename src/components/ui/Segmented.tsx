@@ -49,7 +49,7 @@ export function Segmented<T extends string>({
             }}
             tabIndex={active ? 0 : -1}
             className={`relative flex-1 whitespace-nowrap rounded-[10px] font-medium transition-colors ${
-              size === 'sm' ? 'h-9 px-3 text-[13px]' : 'h-10 px-4 text-[14px]'
+              size === 'sm' ? 'hit-y h-9 px-3 text-[13px]' : 'hit-y h-10 px-4 text-[14px]'
             } ${active ? 'text-text' : 'text-text-2 hover:text-text'}`}
           >
             {active && (

@@ -4,11 +4,12 @@
  * - Only transform + opacity animate. Reduced motion → fade only (MotionConfig + opacity).
  * - Accessible dialog: aria-modal, labelled, focus trapped, Escape closes, focus restored.
  */
-import { AnimatePresence, m, useDragControls, type PanInfo } from 'motion/react';
+import { AnimatePresence, m, useDragControls, useMotionValue, useTransform, type PanInfo } from 'motion/react';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { springs } from '@/motion/springs';
+import { project } from '@/motion/gesture';
 import { useMediaQuery } from '@/lib/useMediaQuery';
 
 export interface SheetProps {
@@ -77,23 +78,29 @@ function SheetPanel({ onClose, title, hideTitle, children, footer, width = 480, 
     };
   }, [onClose, initialFocus]);
 
+  // The scrim lightens 1:1 as the sheet is dragged down, so feedback is continuous, not only at release.
+  const y = useMotionValue(0);
+  const scrimOpacity = useTransform(y, (v) => (typeof v === 'number' ? Math.max(0.15, 1 - Math.max(0, v) / 480) : 1));
+
+  // Decide from where the flick is heading (projected end), not where the finger lifted.
   const onDragEnd = (_: unknown, info: PanInfo) => {
     setDragging(false);
-    if (info.offset.y > 140 || info.velocity.y > 650) onClose();
+    if (info.offset.y + project(info.velocity.y, 0.99) > 140) onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center md:items-center" data-testid={testId}>
-      <m.div
-        className="absolute inset-0"
-        style={{ background: 'var(--overlay)' }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <m.div className="absolute inset-0" style={{ opacity: scrimOpacity }} aria-hidden="true">
+        <m.div
+          className="absolute inset-0"
+          style={{ background: 'var(--overlay)' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          onClick={onClose}
+        />
+      </m.div>
       <m.div
         ref={panelRef}
         role="dialog"
@@ -101,7 +108,7 @@ function SheetPanel({ onClose, title, hideTitle, children, footer, width = 480, 
         aria-labelledby={titleId}
         tabIndex={-1}
         className="glass glass-strong relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[28px] shadow-3 outline-none md:max-h-[86dvh] md:rounded-[28px]"
-        style={{ maxWidth: desktop ? width : undefined, touchAction: dragging ? 'none' : undefined }}
+        style={{ maxWidth: desktop ? width : undefined, touchAction: dragging ? 'none' : undefined, y }}
         initial={desktop ? { opacity: 0, scale: 0.96, y: 12 } : { opacity: 0.6, y: '100%' }}
         animate={desktop ? { opacity: 1, scale: 1, y: 0 } : { opacity: 1, y: 0 }}
         exit={desktop ? { opacity: 0, scale: 0.97, y: 8 } : { opacity: 0.6, y: '100%' }}

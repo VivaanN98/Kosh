@@ -221,7 +221,7 @@ function CategoriesSection() {
                         key={c.id}
                         type="button"
                         onClick={() => toggleArchive(c.id, !c.archivedAt)}
-                        className={`min-h-[32px] rounded-full border border-line px-3 text-[12.5px] ${c.archivedAt ? 'text-text-3 line-through' : 'text-text-2 hover:bg-surface-2'}`}
+                        className={`hit-y min-h-[32px] rounded-full border border-line px-3 text-[12.5px] ${c.archivedAt ? 'text-text-3 line-through' : 'text-text-2 hover:bg-surface-2'}`}
                         title={c.archivedAt ? 'Hidden — tap to restore' : 'Tap to hide'}
                       >
                         {c.name}

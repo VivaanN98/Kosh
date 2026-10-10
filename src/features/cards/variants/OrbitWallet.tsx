@@ -7,6 +7,7 @@ import { m, type PanInfo } from 'motion/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { CardFace } from '@/components/cards/CardFace';
 import { springs } from '@/motion/springs';
+import { project } from '@/motion/gesture';
 import { useElementWidth } from '@/lib/useElementWidth';
 import { useDerived } from '@/data/hooks';
 import type { PaymentCard } from '@/domain/types';
@@ -27,8 +28,10 @@ export function OrbitWallet({ cards, state, onEdit }: { cards: PaymentCard[]; st
   };
 
   const onDragEnd = (_: unknown, info: PanInfo) => {
-    if (info.offset.x < -50 || info.velocity.x < -400) go(current + 1);
-    else if (info.offset.x > 50 || info.velocity.x > 400) go(current - 1);
+    // Flick lands where it is heading: a quick short flick travels as far as a slow long drag.
+    const end = info.offset.x + project(info.velocity.x, 0.99);
+    if (end < -50) go(current + 1);
+    else if (end > 50) go(current - 1);
   };
 
   return (

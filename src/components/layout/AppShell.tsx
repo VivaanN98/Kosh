@@ -128,7 +128,7 @@ function TabBar() {
                 to={item.to}
                 end={'end' in item}
                 className={({ isActive }) =>
-                  `relative flex h-[52px] w-[64px] flex-col items-center justify-center gap-0.5 rounded-[14px] text-[10.5px] font-medium ${
+                  `relative flex h-[52px] w-[64px] flex-col items-center justify-center gap-0.5 rounded-[14px] text-[11px] font-medium ${
                     isActive ? 'text-text' : 'text-text-3'
                   }`
                 }

@@ -184,3 +184,35 @@
   --chart-8: #e66767;
   --chart-grid: rgba(255, 255, 255, 0.07);
 }
+
+/*
+ * Increase Contrast (OS setting): every text and line token gets a stronger variant, and glass
+ * becomes opaque. Must stay last so it wins over the theme blocks above at equal specificity.
+ */
+@media (prefers-contrast: more) {
+  :root {
+    --text-2: #34373d;
+    --text-3: #43464c;
+    --line: rgba(24, 22, 18, 0.28);
+    --line-strong: rgba(24, 22, 18, 0.5);
+    --glass-bg: var(--glass-solid);
+  }
+}
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --text-2: #d2d4d9;
+    --text-3: #b9bcc2;
+    --line: rgba(255, 255, 255, 0.3);
+    --line-strong: rgba(255, 255, 255, 0.55);
+    --glass-bg: var(--glass-solid);
+  }
+}
+@media (prefers-contrast: more) {
+  :root[data-theme='dark'] {
+    --text-2: #d2d4d9;
+    --text-3: #b9bcc2;
+    --line: rgba(255, 255, 255, 0.3);
+    --line-strong: rgba(255, 255, 255, 0.55);
+    --glass-bg: var(--glass-solid);
+  }
+}
