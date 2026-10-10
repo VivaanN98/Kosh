@@ -20,3 +20,4 @@ certs/
 .shot.mjs
 .dbg.mjs
 .lab.mjs
+public/ocr/

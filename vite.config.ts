@@ -17,6 +17,8 @@ const supabaseProxy = {
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // Only the app entry is scanned for dependencies (scripts/ocr-eval has its own optional engines).
+  optimizeDeps: { entries: ['index.html'] },
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },

@@ -1,0 +1,279 @@
+{
+  "results": [
+    {
+      "engine": "ocrad.js",
+      "initMs": 2,
+      "rows": [
+        {
+          "card": "State Bank of India",
+          "cond": "clean",
+          "blur": 0.104,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "sample": [],
+          "flaggedWrong": []
+        },
+        {
+          "card": "State Bank of India",
+          "cond": "embossed",
+          "blur": 0.111,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "State Bank of India",
+          "cond": "glossy-blur",
+          "blur": 0.229,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "State Bank of India",
+          "cond": "angled-lowlight",
+          "blur": 0.146,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "Indian Bank",
+          "cond": "clean",
+          "blur": 0.13,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "Indian Bank",
+          "cond": "embossed",
+          "blur": 0.134,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "Indian Bank",
+          "cond": "glossy-blur",
+          "blur": 0.246,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "Indian Bank",
+          "cond": "angled-lowlight",
+          "blur": 0.146,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "HDFC Bank",
+          "cond": "clean",
+          "blur": 0.1,
+          "ms": 1,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "HDFC Bank",
+          "cond": "embossed",
+          "blur": 0.112,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "HDFC Bank",
+          "cond": "glossy-blur",
+          "blur": 0.228,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "HDFC Bank",
+          "cond": "angled-lowlight",
+          "blur": 0.129,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "ICICI Bank",
+          "cond": "clean",
+          "blur": 0.107,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "ICICI Bank",
+          "cond": "embossed",
+          "blur": 0.114,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "ICICI Bank",
+          "cond": "glossy-blur",
+          "blur": 0.239,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "ICICI Bank",
+          "cond": "angled-lowlight",
+          "blur": 0.14,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "Axis Bank",
+          "cond": "clean",
+          "blur": 0.11,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "Axis Bank",
+          "cond": "embossed",
+          "blur": 0.115,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "Axis Bank",
+          "cond": "glossy-blur",
+          "blur": 0.192,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "Axis Bank",
+          "cond": "angled-lowlight",
+          "blur": 0.158,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "Kotak Mahindra Bank",
+          "cond": "clean",
+          "blur": 0.093,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "Kotak Mahindra Bank",
+          "cond": "embossed",
+          "blur": 0.104,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "Kotak Mahindra Bank",
+          "cond": "glossy-blur",
+          "blur": 0.237,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        },
+        {
+          "card": "Kotak Mahindra Bank",
+          "cond": "angled-lowlight",
+          "blur": 0.137,
+          "ms": 0,
+          "issuer": false,
+          "network": false,
+          "cardType": false,
+          "last4": false,
+          "flaggedWrong": []
+        }
+      ]
+    }
+  ],
+  "bytes": {
+    "other": 429388,
+    "ocrad": 300
+  }
+}
