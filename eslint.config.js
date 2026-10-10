@@ -14,6 +14,10 @@ export default tseslint.config(
       'supabase/functions/**',
       'node_modules',
       'certs',
+      'android/**',
+      'dist-apk/**',
+      'public/ocr/**',
+      'dev-dist/**',
     ],
   },
   {
