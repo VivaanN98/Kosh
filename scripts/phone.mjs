@@ -3,15 +3,20 @@
 // The tunnel is public while this runs; the app still requires sign-in (or runs Demo Mode).
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
+const root = fileURLToPath(new URL('..', import.meta.url));
 const candidates = [
   process.env.CLOUDFLARED_PATH,
-  'C:\Program Files (x86)\cloudflared\cloudflared.exe',
-  'C:\Program Files\cloudflared\cloudflared.exe',
+  join(root, '.tools', 'cloudflared.exe'),
+  join(root, '.tools', 'cloudflared'),
+  'C:\\Program Files (x86)\\cloudflared\\cloudflared.exe',
+  'C:\\Program Files\\cloudflared\\cloudflared.exe',
 ].filter(Boolean);
 const cloudflared = candidates.find((p) => existsSync(p)) ?? 'cloudflared';
 
-const vite = spawn('npx', ['vite'], { stdio: 'inherit', shell: true });
+const vite = spawn('npx', ['vite'], { stdio: 'inherit', shell: true, cwd: root });
 const tunnel = spawn(cloudflared, ['tunnel', '--no-autoupdate', '--url', 'http://localhost:5173'], {
   stdio: ['ignore', 'pipe', 'pipe'],
 });
@@ -27,7 +32,10 @@ const onData = (buf) => {
 tunnel.stdout.on('data', onData);
 tunnel.stderr.on('data', onData);
 tunnel.on('error', (err) => {
-  console.error('Could not start cloudflared. Install it with: winget install Cloudflare.cloudflared', err.message);
+  console.error(
+    'Could not start cloudflared. Put cloudflared.exe in .tools/ (see docs/deployment.md) or run: winget install Cloudflare.cloudflared',
+    err.message,
+  );
 });
 
 const stop = () => {

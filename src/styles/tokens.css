@@ -1,0 +1,176 @@
+/*
+ * Kosh design tokens — the single source of colour, type, radius, elevation and glass.
+ * Dark: obsidian + charcoal. Light: warm white. Accents (mint, periwinkle) used sparingly.
+ * Text colours meet WCAG AA on their intended surfaces in both themes.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --bg: #f6f4ef;
+  --bg-elevated: #fbfaf7;
+  --surface: #ffffff;
+  --surface-2: #f1efe9;
+  --surface-3: #e9e6df;
+  --sunken: #eceae4;
+  --overlay: rgba(22, 21, 18, 0.32);
+
+  /* Lines */
+  --line: rgba(24, 22, 18, 0.08);
+  --line-strong: rgba(24, 22, 18, 0.14);
+  --highlight: rgba(255, 255, 255, 0.9);
+
+  /* Text (AA on --bg and --surface) */
+  --text: #17171a;
+  --text-2: #55585f;
+  --text-3: #64676e;
+  --text-inverse: #f6f4ef;
+
+  /* Accents */
+  --mint: #167a58;
+  --mint-soft: #d9f2e7;
+  --on-mint: #ffffff;
+  --mint-glow: rgba(46, 179, 128, 0.16);
+  --peri: #4c58b8;
+  --peri-soft: #e3e6fa;
+  --peri-glow: rgba(110, 124, 230, 0.14);
+
+  /* Semantic */
+  --positive: #157a52;
+  --negative: #b4372c;
+  --negative-soft: #fbe3df;
+  --warning: #8f5b06;
+  --warning-soft: #f9ecd2;
+
+  /* Focus */
+  --focus: #4c58b8;
+
+  /* Glass */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-solid: #fbfaf7;
+  --glass-border: rgba(255, 255, 255, 0.7);
+  --glass-blur: 22px;
+  --glass-saturate: 170%;
+
+  /* Elevation */
+  --shadow-1: 0 1px 2px rgba(24, 22, 18, 0.05), 0 1px 1px rgba(24, 22, 18, 0.03);
+  --shadow-2: 0 8px 24px -8px rgba(24, 22, 18, 0.14), 0 2px 6px rgba(24, 22, 18, 0.05);
+  --shadow-3: 0 24px 64px -16px rgba(24, 22, 18, 0.28), 0 4px 12px rgba(24, 22, 18, 0.06);
+
+  /* Shape */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  --radius-card: 18px;
+
+  /* Type */
+  --font-ui: 'Geist', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Layout */
+  --sidebar-w: 88px;
+  --tabbar-h: 64px;
+  --content-max: 1080px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+
+  /* Charts */
+  --chart-1: #2fa47a;
+  --chart-2: #6c78d8;
+  --chart-3: #d8913f;
+  --chart-4: #c3659a;
+  --chart-5: #3e9cbf;
+  --chart-6: #9a8f7c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #0a0b0d;
+    --bg-elevated: #0f1013;
+    --surface: #141519;
+    --surface-2: #1a1c21;
+    --surface-3: #22252b;
+    --sunken: #08090b;
+    --overlay: rgba(0, 0, 0, 0.56);
+    --line: rgba(255, 255, 255, 0.07);
+    --line-strong: rgba(255, 255, 255, 0.13);
+    --highlight: rgba(255, 255, 255, 0.06);
+    --text: #f3f1ec;
+    --text-2: #a9acb3;
+    --text-3: #8a8e96;
+    --text-inverse: #0a0b0d;
+    --mint: #9fe3c8;
+    --mint-soft: rgba(159, 227, 200, 0.12);
+    --on-mint: #06281c;
+    --mint-glow: rgba(120, 220, 180, 0.13);
+    --peri: #aab4f6;
+    --peri-soft: rgba(170, 180, 246, 0.13);
+    --peri-glow: rgba(140, 150, 245, 0.12);
+    --positive: #8edcb9;
+    --negative: #f4978d;
+    --negative-soft: rgba(244, 151, 141, 0.12);
+    --warning: #f0c27b;
+    --warning-soft: rgba(240, 194, 123, 0.12);
+    --focus: #aab4f6;
+    --glass-bg: rgba(22, 23, 27, 0.66);
+    --glass-solid: #16171b;
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-2: 0 10px 30px -10px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.35);
+    --shadow-3: 0 30px 80px -20px rgba(0, 0, 0, 0.85), 0 6px 16px rgba(0, 0, 0, 0.4);
+    --chart-1: #8edcb9;
+    --chart-2: #aab4f6;
+    --chart-3: #f0b36d;
+    --chart-4: #e79bc4;
+    --chart-5: #7cc7e3;
+    --chart-6: #b9b0a0;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0a0b0d;
+  --bg-elevated: #0f1013;
+  --surface: #141519;
+  --surface-2: #1a1c21;
+  --surface-3: #22252b;
+  --sunken: #08090b;
+  --overlay: rgba(0, 0, 0, 0.56);
+  --line: rgba(255, 255, 255, 0.07);
+  --line-strong: rgba(255, 255, 255, 0.13);
+  --highlight: rgba(255, 255, 255, 0.06);
+  --text: #f3f1ec;
+  --text-2: #a9acb3;
+  --text-3: #8a8e96;
+  --text-inverse: #0a0b0d;
+  --mint: #9fe3c8;
+  --mint-soft: rgba(159, 227, 200, 0.12);
+  --on-mint: #06281c;
+  --mint-glow: rgba(120, 220, 180, 0.13);
+  --peri: #aab4f6;
+  --peri-soft: rgba(170, 180, 246, 0.13);
+  --peri-glow: rgba(140, 150, 245, 0.12);
+  --positive: #8edcb9;
+  --negative: #f4978d;
+  --negative-soft: rgba(244, 151, 141, 0.12);
+  --warning: #f0c27b;
+  --warning-soft: rgba(240, 194, 123, 0.12);
+  --focus: #aab4f6;
+  --glass-bg: rgba(22, 23, 27, 0.66);
+  --glass-solid: #16171b;
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 10px 30px -10px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.35);
+  --shadow-3: 0 30px 80px -20px rgba(0, 0, 0, 0.85), 0 6px 16px rgba(0, 0, 0, 0.4);
+  --chart-1: #8edcb9;
+  --chart-2: #aab4f6;
+  --chart-3: #f0b36d;
+  --chart-4: #e79bc4;
+  --chart-5: #7cc7e3;
+  --chart-6: #b9b0a0;
+}
