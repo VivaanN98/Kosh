@@ -18,6 +18,9 @@ Additions beyond the original spec, and why:
   (docs/ocr.md). Self-hosted under `/ocr` (copied by `scripts/copy-ocr-assets.mjs`), lazy-loaded after Scan.
 - `@tesseract.js-data/eng` (dev) — the English model file copied into `/ocr`.
 - Phone testing uses a Cloudflare quick tunnel (`cloudflared` in `.tools/` or installed) instead of local certs.
+- `@capacitor/core`, `@capacitor/android`, `@capacitor/app`, `@capacitor/cli` (dev) — the native Android
+  app the user asked for (installable APK). `@capacitor/app` handles the hardware back button.
+- `vite-plugin-pwa` + `workbox-window` (dev) — installable PWA (manifest, service worker, update prompt).
 - `typescript` pinned to 6.0.x because `typescript-eslint` 8 supports `<6.1`.
 - `jsdom` pinned to 29.x because 30.x requires Node ≥ 22.22.
 
@@ -41,6 +44,10 @@ Additions beyond the original spec, and why:
 | Apply new migrations only | `npm run db:migrate` |
 | New migration | `npm run db:new -- <name>` |
 | Write `.env.local` from local Supabase | `node scripts/write-local-env.mjs` |
+| Serve Edge Functions locally | `npx supabase functions serve` |
+| Android APK (signed) | `npm run android:apk` → `dist-apk/` (toolchain in `D:/KoshAndroid`, see docs/deployment.md) |
+| Web build for the Android app | `npm run build:native` (`--mode native`, uses `.env.native(.local)`) |
+| App icons from `public/icon.svg` | `npm run icons` |
 
 ## Folder structure
 
@@ -51,7 +58,10 @@ src/
                   goals, recurring schedule, statements, reports, seed data
   data/           repository.ts (interface), demo/ (IndexedDB adapter), supabase/ (RPC adapter),
                   provider.tsx (picks backend), queries (cache + optimistic updates)
-  motion/         springs.ts — the ONLY place spring presets are defined
+  motion/         springs.ts — the ONLY place spring presets are defined; MotionProvider defers
+                  animation features until the first page paints (first screens never wait on them)
+  native/         Capacitor integration (Android back button, system bars) — native build only
+  pwa.ts          service worker registration + install prompt — web only
   styles/         tokens.css (all design tokens), index.css
   components/     ui primitives (Sheet, Toast, Keypad, Skeleton, Glass…), cards/
   features/       home, activity, add, accounts, cards (3 wallet variants + scan), plans, insights,
@@ -63,7 +73,8 @@ tests/
 e2e/              Playwright specs + screenshots
 supabase/
   migrations/     schema, RLS, ledger RPC functions
-  functions/      Edge Functions (assistant)
+  functions/      Edge Functions: `assistant` (read-only AI; key server-side; six SQL tools)
+android/          Capacitor Android project (generated; signing via android/keystore.properties, gitignored)
 docs/             architecture, database, security, deployment, testing
 ```
 
