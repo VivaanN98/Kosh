@@ -38,16 +38,6 @@ export interface OcrResult {
   words: WordBox[];
 }
 
-function upscale(source: HTMLCanvasElement, width: number): HTMLCanvasElement {
-  const c = document.createElement('canvas');
-  c.width = width;
-  c.height = Math.round((source.height / source.width) * width);
-  const ctx = c.getContext('2d')!;
-  ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(source, 0, 0, c.width, c.height);
-  return c;
-}
-
 /** Rejects if the engine cannot load or read within the limit (slow network, missing assets). */
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return Promise.race([p, new Promise<T>((_, reject) => setTimeout(() => reject(new Error('OCR timed out')), ms))]);
@@ -58,13 +48,13 @@ export async function recognizeCard(card: HTMLCanvasElement, timeoutMs = 60_000)
     workerPromise = null;
     throw err;
   });
-  // Evaluation showed raw frames read better than contrast/inverted ones (docs/ocr.md); small
-  // camera crops are only enlarged so text is tall enough for the recogniser.
-  const prepared = card.width >= 1000 ? card : upscale(card, 1100);
+  // Evaluation showed raw frames read better than contrast/inverted ones (scripts/ocr-eval), and
+  // enlarging small crops lost words ("DEBIT") in testing, so the frame is read as captured.
   try {
-    const { data } = await withTimeout(worker.recognize(prepared, {}, { text: true, blocks: true }), timeoutMs);
-    const W = prepared.width;
-    const H = prepared.height;
+    const { data } = await withTimeout(worker.recognize(card, {}, { text: true, blocks: true }), timeoutMs);
+    // Boxes are in the recognised image's pixels; normalise by that same image.
+    const W = card.width;
+    const H = card.height;
     const words: WordBox[] = [];
     for (const block of data.blocks ?? []) {
       for (const para of block.paragraphs) {
@@ -75,7 +65,6 @@ export async function recognizeCard(card: HTMLCanvasElement, timeoutMs = 60_000)
     }
     return { lines: data.text.split('\n'), words };
   } finally {
-    if (prepared !== card) prepared.width = 0;
     if (idleTimer) clearTimeout(idleTimer);
     // Free the worker's memory if no further scans happen soon.
     idleTimer = setTimeout(() => {
