@@ -15,6 +15,8 @@ web app, an installable PWA, and a native Android app.
 
 <sub>Screenshots are from Demo Mode, which uses fictional data.</sub>
 
+**Try it on Android:** download the Demo build from [Releases](https://github.com/VivaanN98/Kosh/releases). It runs on fictional data with no setup. To track real money, self-host (below).
+
 ## What it does
 
 - **Ledger:** expenses, income, transfers, card payments, refunds, reconciliation adjustments and
