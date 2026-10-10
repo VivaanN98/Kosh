@@ -23,7 +23,7 @@ const tunnel = spawn(cloudflared, ['tunnel', '--no-autoupdate', '--url', 'http:/
 
 let printed = false;
 const onData = (buf) => {
-  const match = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/.exec(buf.toString());
+  const match = /https:\/\/(?!api\.)[a-z0-9-]+\.trycloudflare\.com/.exec(buf.toString());
   if (match && !printed) {
     printed = true;
     console.log(`\n  📱  Open on your phone: ${match[0]}\n`);
@@ -38,7 +38,20 @@ tunnel.on('error', (err) => {
   );
 });
 
+// Without Vite the tunnel would forward to whatever else holds port 5173, so never outlive it.
+let stopping = false;
+vite.on('exit', (code) => {
+  tunnel.kill();
+  if (stopping) return;
+  console.error(
+    `\nVite exited (code ${code}); tunnel closed. If port 5173 is in use, stop that process and retry:\n` +
+      '  Get-NetTCPConnection -LocalPort 5173 | Select-Object OwningProcess   (then Stop-Process -Id <id>)\n',
+  );
+  process.exit(code || 1);
+});
+
 const stop = () => {
+  stopping = true;
   tunnel.kill();
   vite.kill();
   process.exit(0);
