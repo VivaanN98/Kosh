@@ -4,6 +4,17 @@ A calm, exact personal finance tracker for one person in India (INR, Asia/Kolkat
 comes from one double-entry ledger, adding an expense takes an amount and one tap, and it runs as a
 web app, an installable PWA, and a native Android app.
 
+<p align="center">
+  <img src="docs/screenshots/phone-home.png" width="23%" alt="Home: net worth and account tiles" />
+  <img src="docs/screenshots/phone-insights.png" width="23%" alt="Insights: where the money went" />
+  <img src="docs/screenshots/phone-accounts.png" width="23%" alt="Accounts" />
+  <img src="docs/screenshots/phone-plans.png" width="23%" alt="Plans: budgets, goals and recurring" />
+</p>
+
+<p align="center"><img src="docs/screenshots/desktop-home.png" width="90%" alt="Kosh on desktop" /></p>
+
+<sub>Screenshots are from Demo Mode, which uses fictional data.</sub>
+
 ## What it does
 
 - **Ledger:** expenses, income, transfers, card payments, refunds, reconciliation adjustments and
