@@ -20,6 +20,7 @@
       try {
         var t = localStorage.getItem('kosh.theme');
         if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+        if (localStorage.getItem('kosh.transparency') === 'reduced') document.documentElement.dataset.transparency = 'reduced';
       } catch (e) {}
     </script>
   </head>

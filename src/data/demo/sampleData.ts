@@ -105,7 +105,8 @@ export async function seedSampleData(repo: Repository, today: IsoDate = todayIST
       );
     }
   }
-  // A refund and a card fee, a card repayment last month.
+  // An ATM withdrawal (a transfer: not spending), a refund, a card fee and a card repayment.
+  await repo.postTransaction({ type: 'transfer', amount: rupees(3000), occurredOn: addDays(start, 18), accountId: sbi.id, toAccountId: cash.id, note: 'ATM withdrawal' }, key());
   const shoes = await repo.postTransaction({ type: 'expense', amount: rupees(3499), occurredOn: addDays(start, 30), accountId: card.id, categoryId: cat('shopping.clothing'), merchant: 'Stride Footwear' }, key());
   await repo.postTransaction({ type: 'refund', amount: rupees(3499), occurredOn: addDays(start, 36), accountId: card.id, refundOf: shoes.id, merchant: 'Stride Footwear' }, key());
   await repo.postTransaction({ type: 'expense', amount: rupees(499), occurredOn: addDays(start, 45), accountId: card.id, categoryId: cat('fees.card'), merchant: 'Annual card fee' }, key());

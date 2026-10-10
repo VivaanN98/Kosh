@@ -56,7 +56,7 @@ export default function AddSheet({ open, preset, onClose }: { open: boolean; pre
   }, [refundOf, snap.transactions, editing]);
 
   const [mode, setMode] = useState<AddMode>(() => (editing ? modeOf(editing.type) : (preset.mode ?? 'expense')));
-  const [amount, setAmount] = useState(() => (editing ? toInput(editing.amount) : refundOf ? toInput(refundable) : ''));
+  const [amount, setAmount] = useState(() => (editing ? toInput(editing.amount) : refundOf ? toInput(refundable) : preset.amount ? toInput(preset.amount) : ''));
   const [categoryId, setCategoryId] = useState<Uuid | null>(() => {
     if (editing) return editing.categoryId;
     if (refundOf) return refundOf.categoryId;

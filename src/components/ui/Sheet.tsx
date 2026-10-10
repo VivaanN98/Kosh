@@ -44,7 +44,9 @@ function SheetPanel({ onClose, title, hideTitle, children, footer, width = 480, 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     const panel = panelRef.current;
-    const target = (initialFocus && panel?.querySelector<HTMLElement>(initialFocus)) || panel;
+    const wanted = initialFocus ? panel?.querySelector<HTMLElement>(initialFocus) : null;
+    // A disabled element can't take focus; fall back to the dialog itself so focus never stays behind it.
+    const target = wanted && !(wanted as HTMLButtonElement).disabled ? wanted : panel;
     target?.focus({ preventScroll: true });
     const { overflow } = document.body.style;
     document.body.style.overflow = 'hidden';

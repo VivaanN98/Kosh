@@ -9,7 +9,7 @@ import { springs } from '@/motion/springs';
 export interface ToastOptions {
   message: string;
   tone?: 'default' | 'error' | 'success';
-  action?: { label: string; onClick: () => void | Promise<void> };
+  action?: { label: string; onClick: () => unknown };
   duration?: number;
 }
 

@@ -48,13 +48,15 @@ export interface CashFlowMonth {
 
 /**
  * Cash flow of liquid accounts (cash + bank): money in and out, excluding moves between two
- * liquid accounts. Card payments are outflows (cash leaves to settle debt); card purchases are not.
+ * liquid accounts and equity postings (opening balances, reconciliation adjustments), which are
+ * bookkeeping, not flows. Card payments are outflows; card purchases are not.
  */
 export function cashFlow(
   entries: readonly LedgerEntry[],
   accounts: readonly Account[],
   from: MonthKey,
   to: MonthKey,
+  equityAccountId?: Uuid,
 ): CashFlowMonth[] {
   const liquid = new Set(accounts.filter((a) => a.kind === 'cash' || a.kind === 'bank').map((a) => a.id));
   const byTx = new Map<Uuid, LedgerEntry[]>();
@@ -67,6 +69,7 @@ export function cashFlow(
   for (const list of byTx.values()) {
     const liquidSide = list.filter((e) => liquid.has(e.accountId));
     if (liquidSide.length === 0 || liquidSide.length === list.length) continue; // none, or internal move
+    if (equityAccountId && list.some((e) => e.accountId === equityAccountId)) continue; // bookkeeping
     for (const e of liquidSide) {
       const row = months.get(monthKey(e.occurredOn));
       if (!row) continue;

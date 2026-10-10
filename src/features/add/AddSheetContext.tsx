@@ -1,5 +1,6 @@
 import { createContext, lazy, Suspense, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Transaction, Uuid } from '@/domain/types';
+import type { Paise } from '@/lib/money';
 import type { AddMode } from './suggest';
 
 export interface AddPreset {
@@ -10,6 +11,8 @@ export interface AddPreset {
   refundOf?: Transaction;
   accountId?: Uuid;
   toAccountId?: Uuid;
+  /** Prefilled amount in paise (e.g. a card statement's remaining balance). */
+  amount?: Paise;
 }
 
 interface AddSheetApi {
