@@ -13,6 +13,8 @@ export interface WordBox {
   y0: number;
   x1: number;
   y1: number;
+  /** OCR confidence 0..100. */
+  confidence?: number;
 }
 
 type RGB = [number, number, number];

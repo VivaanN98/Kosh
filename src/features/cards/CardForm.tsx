@@ -10,6 +10,7 @@ import { Segmented } from '@/components/ui/Segmented';
 import { useToast } from '@/components/ui/Toast';
 import { CardFace } from '@/components/cards/CardFace';
 import { useDerived, useStore } from '@/data/hooks';
+import { deleteCardFace, saveCardFace, useCardFace } from '@/data/cardFaces';
 import { idempotencyKey } from '@/lib/ids';
 import { NETWORK_LABEL, sanitizeArtwork, textToneFor } from '@/domain/cards/artwork';
 import { hasCardLikeNumber } from '@/domain/ledger/engine';
@@ -24,6 +25,11 @@ export interface CardDraft {
   last4: string;
   accountId: string;
   artwork: CardArtwork;
+  /**
+   * Scanned face picture (number, expiry and name removed), in memory until saved to this device.
+   * undefined = keep whatever the card already has; null = use the template (removes a stored one).
+   */
+  face?: Blob | null;
 }
 
 export type UncertainField = 'issuer' | 'network' | 'cardType' | 'last4';
@@ -104,6 +110,14 @@ export function CardForm({
       } else {
         saved = await store.run((repo) => repo.createPaymentCard({ ...payload, source }), 'cards');
       }
+      const cardId = existing?.id ?? saved?.id;
+      if (cardId && draft.face !== undefined) {
+        try {
+          await (draft.face ? saveCardFace(cardId, draft.face) : deleteCardFace(cardId));
+        } catch {
+          toast({ tone: 'error', message: 'The card was saved, but this browser wouldn’t store its picture — it shows the colour template instead.' });
+        }
+      }
       onDone(saved);
     } catch (err) {
       toast({ tone: 'error', message: toKoshError(err).friendly });
@@ -112,13 +126,27 @@ export function CardForm({
     }
   };
 
-  const preview = { ...draft, displayName: draft.displayName || null, last4: /^\d{4}$/.test(draft.last4) ? draft.last4 : null };
+  const storedFace = useCardFace(draft.face === undefined ? existing?.id : undefined);
+  const draftFace = draft.face ? faceUrl(draft.face) : null;
+  const face = draft.face === undefined ? storedFace : draftFace;
+  const preview = { ...draft, face, displayName: draft.displayName || null, last4: /^\d{4}$/.test(draft.last4) ? draft.last4 : null };
+  // Lets the user switch back to the scanned picture after choosing the template.
+  const [scanned] = useState(initial.face ?? null);
 
   return (
     <div className="space-y-4 pb-2" data-testid="card-form">
       <div className="mx-auto max-w-[320px]">
         <CardFace card={preview} />
-        <p className="mt-2 text-center text-[11.5px] text-text-3">Artwork is a template recreation — no photo is stored.</p>
+        <p className="mt-2 text-center text-[11.5px] text-text-3">
+          {face ? 'Your card’s design, with the number, expiry and name removed. Kept only on this device.' : 'Artwork is a template recreation — no photo is stored.'}
+        </p>
+        {(face || scanned) && (
+          <div className="mt-2 flex justify-center">
+            <Button size="sm" variant="ghost" onClick={() => set('face', face ? null : scanned)} data-testid="toggle-card-face">
+              {face ? 'Use a colour template instead' : 'Use the scanned design'}
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -208,7 +236,7 @@ export function CardForm({
         {draft.cardType === 'credit' && <option value="new-credit">+ New credit card account</option>}
       </SelectField>
 
-      <ArtworkEditor artwork={draft.artwork} onChange={(a) => set('artwork', a)} />
+      {!face && <ArtworkEditor artwork={draft.artwork} onChange={(a) => set('artwork', a)} />}
 
       {pending.length > 0 && (
         <p className="rounded-[12px] bg-warning-soft px-3 py-2 text-[12.5px] text-warning" role="status">
@@ -220,6 +248,17 @@ export function CardForm({
       </Button>
     </div>
   );
+}
+
+/** One URL per scanned picture (≈40 KB, at most one per scan), released when the page unloads. */
+const faceUrls = new WeakMap<Blob, string>();
+function faceUrl(blob: Blob): string {
+  let url = faceUrls.get(blob);
+  if (!url) {
+    url = URL.createObjectURL(blob);
+    faceUrls.set(blob, url);
+  }
+  return url;
 }
 
 export function ArtworkEditor({ artwork, onChange }: { artwork: CardArtwork; onChange: (a: CardArtwork) => void }) {

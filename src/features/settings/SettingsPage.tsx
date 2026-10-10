@@ -36,6 +36,8 @@ export default function SettingsPage() {
   const resetDemo = async () => {
     const { DemoRepository } = await import('@/data/demo/demoRepository');
     if (store.repo instanceof DemoRepository) await store.repo.store.clearAll();
+    const { clearCardFaces } = await import('@/data/cardFaces');
+    await clearCardFaces().catch(() => undefined);
     window.location.reload();
   };
 
@@ -105,7 +107,7 @@ export default function SettingsPage() {
           </div>
           <div className="flex items-start gap-3">
             <ShieldCheck size={18} className="mt-0.5 shrink-0 text-text-2" aria-hidden="true" />
-            <p className="text-[14px] text-text-2">Card photos, full card numbers, CVVs and PINs are never stored.</p>
+            <p className="text-[14px] text-text-2">Full card numbers, CVVs and PINs are never stored. Scanned card designs (number, expiry and name removed) stay on this device.</p>
           </div>
           <div className="flex flex-wrap gap-2 pt-1">
             <Button icon={<Download size={16} />} onClick={exportAll} data-testid="export-csv">

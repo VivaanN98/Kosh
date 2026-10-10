@@ -4,6 +4,7 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import { admin, signIn, user } from './helpers';
+import type { recognizeCard as RecognizeCard } from '../src/features/cards/scan/ocrEngine';
 
 type CameraMode = 'allow' | 'deny' | 'unsupported' | 'blurry' | 'blank';
 
@@ -171,6 +172,8 @@ test('full scan: on-device OCR → editable review → saved without sensitive d
   await form.getByTestId('save-card').click();
   await expect(page.getByTestId('add-card-sheet')).toBeHidden();
   await expect(page.getByLabel(/Scanned Global, visa debit ending 9017/).first()).toBeVisible();
+  // The card shows its real design (number, expiry and name removed), not the colour template.
+  await expect(page.getByTestId('card-face-photo').first()).toBeVisible();
 
   // Database: only sanitized fields; no full number anywhere.
   const { data } = await admin().from('payment_cards').select('*').eq('user_id', user().id).eq('display_name', 'Scanned Global');
@@ -178,9 +181,30 @@ test('full scan: on-device OCR → editable review → saved without sensitive d
   expect(data![0]!.source).toBe('scan');
   expect(JSON.stringify(data)).not.toContain('4000123456789017');
   expect(JSON.stringify(data).replace(/[\s-]/g, '')).not.toMatch(/\d{12,}/);
-  // Browser storage: neither localStorage nor IndexedDB holds the number or the image.
+  // Browser storage: the number is nowhere; the only picture is the cleaned face, on this device.
   const local = await page.evaluate(() => JSON.stringify({ ...localStorage }));
   expect(local.replace(/[\s-]/g, '')).not.toMatch(/4000123456789017|data:image/);
+  const faceText = await page.evaluate(async () => {
+    const req = indexedDB.open('kosh-card-faces');
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    const blobs = await new Promise<Blob[]>((resolve) => {
+      const q = db.transaction('faces').objectStore('faces').getAll();
+      q.onsuccess = () => resolve(q.result as Blob[]);
+    });
+    const bmp = await createImageBitmap(blobs[0]!);
+    const c = document.createElement('canvas');
+    c.width = bmp.width;
+    c.height = bmp.height;
+    c.getContext('2d')!.drawImage(bmp, 0, 0);
+    const engine = '/src/features/cards/scan/ocrEngine.ts'; // served by Vite in the page
+    const { recognizeCard } = (await import(/* @vite-ignore */ engine)) as { recognizeCard: typeof RecognizeCard };
+    return (await recognizeCard(c)).lines.join(' ');
+  });
+  expect(faceText).toMatch(/STATE BANK/); // the design is kept…
+  expect(faceText).not.toMatch(/\d/); // …with every digit removed
   const idb = await page.evaluate(async () => {
     const dbs = (await indexedDB.databases?.()) ?? [];
     return dbs.map((d) => d.name).join(',');

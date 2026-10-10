@@ -1,12 +1,18 @@
 /**
- * A payment card rendered from its sanitized artwork template. Pure presentation: no numbers
- * beyond the optional last four, no images. Used by every wallet variant and the Add Card preview.
+ * A payment card rendered from its scanned face picture (number, expiry and name already removed,
+ * stored on this device only) or, without one, from its sanitized artwork template. No numbers
+ * beyond the optional last four. Used by every wallet variant and the Add Card preview.
  */
 import { memo, type CSSProperties } from 'react';
 import type { CardArtwork, CardNetwork, CardType } from '@/domain/types';
+import { useCardFace } from '@/data/cardFaces';
 import { NetworkMark } from './NetworkMark';
 
 export interface CardFaceData {
+  /** A saved card's id: its stored face picture is shown when this device has one. */
+  id?: string;
+  /** Explicit face picture URL (Add Card preview); null forces the template. */
+  face?: string | null;
   issuer: string;
   displayName: string | null;
   network: CardNetwork;
@@ -94,10 +100,36 @@ export const CardFace = memo(function CardFace({
   /** Hide secondary text (stacked/peeking states). */
   compact?: boolean;
 }) {
+  const stored = useCardFace(card.face === undefined ? card.id : undefined);
+  const face = card.face === undefined ? stored : card.face;
   const a = card.artwork;
   const light = a.textTone === 'light';
   const ink = light ? '#ffffff' : '#14161a';
   const soft = light ? 'rgba(255,255,255,0.72)' : 'rgba(20,22,26,0.66)';
+  if (face) {
+    return (
+      <div
+        className={`relative aspect-[1.586] w-full select-none overflow-hidden rounded-[18px] ${className}`}
+        style={{
+          background: `center / cover no-repeat url("${face}"), ${background(a)}`,
+          boxShadow: '0 1px 0 rgba(255,255,255,0.18) inset, 0 0 0 1px rgba(0,0,0,0.18) inset, 0 18px 40px -18px rgba(0,0,0,0.55)',
+          ...style,
+        }}
+        data-testid="card-face-photo"
+      >
+        {card.last4 && !compact && (
+          <p
+            className="num absolute bottom-[7%] left-[6.5%] text-[13px] tracking-[0.18em]"
+            style={{ color: ink, textShadow: light ? '0 1px 3px rgba(0,0,0,0.55)' : '0 1px 3px rgba(255,255,255,0.6)' }}
+            aria-label={`ending ${card.last4}`}
+          >
+            •••• {card.last4}
+          </p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div
       className={`relative aspect-[1.586] w-full select-none overflow-hidden rounded-[18px] [container-type:inline-size] ${className}`}

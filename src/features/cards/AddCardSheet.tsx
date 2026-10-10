@@ -70,7 +70,7 @@ export function AddCardSheet({ editing, onEditDone }: { editing?: PaymentCard | 
           <ChoiceButton icon={<Keyboard size={22} />} title="Enter Manually" body="Pick the bank, network and look yourself." onClick={() => wallet.openAdd('manual')} testId="choose-manual" />
           <p className="flex items-start gap-2 px-1 pt-1 text-[12.5px] text-text-3">
             <ShieldCheck size={15} className="mt-0.5 shrink-0" aria-hidden="true" />
-            Kosh never stores card photos, full card numbers, CVV, expiry or PIN. Card images never leave this device.
+            Kosh never stores full card numbers, CVV, expiry or PIN. A scanned card keeps only its design, with those removed, and only on this device.
           </p>
         </div>
       ) : wallet.addFlow === 'manual' ? (

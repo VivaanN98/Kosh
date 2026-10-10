@@ -107,6 +107,11 @@ docs/             architecture, database, security, deployment, testing
 
 ## Privacy rules (cards)
 
-- Never persist card photos, full card numbers, CVV/CVC, PINs or credentials. OCR text stays in memory.
-- Only issuer, network, type, display name, optional last 4 and sanitized template artwork are stored.
+- Never persist full card numbers, CVV/CVC, expiry, PINs or credentials. OCR text stays in memory.
+- The database stores only issuer, network, type, display name, optional last 4 and sanitized template
+  artwork.
+- A scanned card's face picture may be kept, but ONLY after `domain/cards/faceMask.ts` has removed every
+  digit, the number row and the lower-half name, the cleaned picture re-reads with no digits
+  (`features/cards/scan/cardFaceImage.ts`; otherwise none is kept), and ONLY in this browser's
+  IndexedDB (`data/cardFaces.ts`). Never in Supabase, never uploaded. The raw photo is never stored.
 - Card data and images are never sent to any AI provider.

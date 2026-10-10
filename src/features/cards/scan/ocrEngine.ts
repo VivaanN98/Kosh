@@ -62,14 +62,14 @@ export async function recognizeCard(card: HTMLCanvasElement, timeoutMs = 60_000)
   // camera crops are only enlarged so text is tall enough for the recogniser.
   const prepared = card.width >= 1000 ? card : upscale(card, 1100);
   try {
-    const { data } = await withTimeout(worker.recognize(card, {}, { text: true, blocks: true }), timeoutMs);
+    const { data } = await withTimeout(worker.recognize(prepared, {}, { text: true, blocks: true }), timeoutMs);
     const W = prepared.width;
     const H = prepared.height;
     const words: WordBox[] = [];
     for (const block of data.blocks ?? []) {
       for (const para of block.paragraphs) {
         for (const line of para.lines) {
-          for (const w of line.words) words.push({ text: w.text, x0: w.bbox.x0 / W, y0: w.bbox.y0 / H, x1: w.bbox.x1 / W, y1: w.bbox.y1 / H });
+          for (const w of line.words) words.push({ text: w.text, x0: w.bbox.x0 / W, y0: w.bbox.y0 / H, x1: w.bbox.x1 / W, y1: w.bbox.y1 / H, confidence: w.confidence });
         }
       }
     }

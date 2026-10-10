@@ -3,7 +3,9 @@
  * - The camera is requested only when this step mounts (i.e. after the user chose "Scan Card").
  * - The camera stops as soon as a frame is captured.
  * - The captured pixels and OCR text live only in local variables; they are wiped right after the
- *   issuer/network/type/last-4 and template colours are derived. Nothing is uploaded or persisted.
+ *   issuer/network/type/last-4, template colours and the cleaned face picture (number, expiry, CVV
+ *   and name removed — see cardFaceImage.ts) are derived. Nothing is uploaded; only the cleaned
+ *   picture is kept, on this device, and only if the user saves the card.
  * - Every failure path falls back to manual entry with a clear message.
  */
 import { m } from 'motion/react';
@@ -16,6 +18,7 @@ import { DEFAULT_ARTWORK, textToneFor } from '@/domain/cards/artwork';
 import type { PaymentCard } from '@/domain/types';
 import { CardForm, type CardDraft } from '../CardForm';
 import { artworkFromImage } from './artworkFromImage';
+import { cleanCardFace } from './cardFaceImage';
 import { blurriness } from './preprocess';
 
 type Phase = 'starting' | 'live' | 'blurry' | 'reading' | 'review';
@@ -178,10 +181,12 @@ export default function ScanFlow({
 
   const read = async (canvas: HTMLCanvasElement) => {
     let artwork = { ...DEFAULT_ARTWORK };
+    let face: Blob | null = null;
     try {
       const { recognizeCard } = await import('./ocrEngine');
       let ocr: Awaited<ReturnType<typeof recognizeCard>> | null = await recognizeCard(canvas);
       artwork = artworkFromImage(canvas, ocr.words);
+      face = await cleanCardFace(canvas, ocr.words, async (c) => (await recognizeCard(c)).words).catch(() => null);
       const parsed = parseCardText(ocr.lines);
       ocr = null; // OCR text discarded: only the parsed fields below survive.
       const draft: CardDraft = {
@@ -192,15 +197,16 @@ export default function ScanFlow({
         last4: parsed.last4 ?? '',
         accountId: '',
         artwork: { ...artwork, textTone: textToneFor(artwork.colors.filter(Boolean) as string[]) },
+        face,
       };
       if (!parsed.issuer && !parsed.network && !parsed.cardType && !parsed.last4) {
-        fallback('We couldn’t read any text on that card (embossed or glossy cards are hard). We kept its colours — please fill in the details.', draft);
+        fallback('We couldn’t read any text on that card (embossed or glossy cards are hard). We kept its look — please fill in the details.', draft);
         return;
       }
       setReview({ draft, uncertain: parsed.uncertain });
       setPhase('review');
     } catch {
-      fallback('Reading the card failed on this device. Please enter the details — we kept the card’s colours if we could.', { ...emptyDraft(), artwork });
+      fallback('Reading the card failed on this device. Please enter the details — we kept the card’s colours if we could.', { ...emptyDraft(), artwork, face });
     } finally {
       canvas.width = 0; // the photo is gone
     }
@@ -211,7 +217,7 @@ export default function ScanFlow({
       <div>
         <p className="mb-4 flex items-start gap-2 rounded-[12px] bg-mint-soft px-3 py-2 text-[13px]" data-testid="scan-review-note">
           <ShieldCheck size={15} className="mt-0.5 shrink-0 text-positive" aria-hidden="true" />
-          Read on this device. The photo has already been discarded — check each field before saving.
+          Read on this device. The number, expiry and name were removed from the picture — check it and each field before saving.
         </p>
         <CardForm source="scan" initial={review.draft} uncertain={review.uncertain} onDone={onDone} />
       </div>
@@ -302,7 +308,7 @@ export default function ScanFlow({
       </div>
       <p className="mt-3 flex items-start gap-2 text-[12px] text-text-3">
         <ShieldCheck size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
-        Processed only on this device. The photo, full number, CVV and expiry are never saved or sent anywhere.
+        Processed only on this device. Only the card’s design is kept, on this device — the full number, CVV and expiry are never saved or sent anywhere.
       </p>
     </div>
   );
