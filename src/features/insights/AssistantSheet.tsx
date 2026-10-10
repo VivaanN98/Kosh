@@ -69,8 +69,8 @@ export function AssistantSheet({ open, onClose }: { open: boolean; onClose: () =
         </Notice>
       ) : state === 'not_configured' ? (
         <Notice icon={<KeyRound size={20} />} title="Assistant not set up yet" testId="assistant-setup">
-          Add an Anthropic API key as a server secret, then ask again:
-          <code className="mt-2 block rounded-[10px] bg-surface-2 px-3 py-2 text-[12px]">npx supabase secrets set ANTHROPIC_API_KEY=…</code>
+          Add an OpenAI API key as a server secret, then ask again:
+          <code className="mt-2 block rounded-[10px] bg-surface-2 px-3 py-2 text-[12px]">npx supabase secrets set OPENAI_API_KEY=…</code>
           The key stays on the server. Everything else in Kosh works without it.
         </Notice>
       ) : (

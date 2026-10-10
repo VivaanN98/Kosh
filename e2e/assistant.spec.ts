@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { signIn } from './helpers';
 
-// Requires `npx supabase functions serve` (or a deployed function). With no ANTHROPIC_API_KEY set,
+// Requires `npx supabase functions serve` (or a deployed function). With no OPENAI_API_KEY set,
 // the assistant must show its setup state and leave the rest of the app untouched.
 test('assistant without a key shows setup steps; the app keeps working', async ({ page }, info) => {
   test.skip(info.project.name !== 'mobile', 'mobile');

@@ -11,7 +11,7 @@
 - **Idempotency:** every write carries a key; `unique (user_id, idempotency_key)` means retries,
   double taps and concurrent requests create one transaction (tested with five concurrent calls).
 - **Secrets:** only the public anon key and URL are `VITE_` variables. The service-role key is used
-  only by local tests. The Anthropic key exists only as an Edge Function secret.
+  only by local tests. The OpenAI key exists only as an Edge Function secret.
 
 ## Cards: what is and isn't stored
 
@@ -45,7 +45,7 @@ never leaves the device. To avoid keeping any picture, choose the colour templat
 ## AI assistant
 
 - Runs in the `assistant` Edge Function, with the key server-side.
-- Claude can only call six read-only SQL functions (`assistant_*`). They are security-invoker and
+- The assistant model can only call six read-only SQL functions (`assistant_*`). They are security-invoker and
   run with the user's JWT, so RLS limits them to that user's data. They return computed figures.
 - It cannot write, run arbitrary SQL, or see payment cards. The client sends only plain-text turns.
 - With no key configured it returns `503 not_configured`, and the app shows setup steps; everything

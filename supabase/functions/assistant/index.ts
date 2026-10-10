@@ -1,16 +1,16 @@
 /**
  * Kosh read-only finance assistant (Supabase Edge Function, Deno).
  *
- * - The Anthropic API key lives only here (ANTHROPIC_API_KEY secret); the browser never sees it.
- * - Claude can ONLY call the fixed, read-only tools below. Each runs one SQL function with the
+ * - The OpenAI API key lives only here (OPENAI_API_KEY secret); the browser never sees it.
+ * - The model can ONLY call the fixed, read-only tools below. Each runs one SQL function with the
  *   caller's JWT, so row-level security limits it to the caller's own data. No tool writes, no
  *   arbitrary SQL, and no tool returns card details (cards, numbers, images are never sent).
  * - If the key is not configured, returns 503 { error: "not_configured" } and the app shows setup steps.
  */
-import Anthropic from 'npm:@anthropic-ai/sdk@0.133.0';
 import { createClient } from 'npm:@supabase/supabase-js@2.117.3';
 
-const MODEL = 'claude-opus-5-5';
+const MODEL = Deno.env.get('OPENAI_MODEL') ?? 'gpt-5.4-mini';
+const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
 const MAX_TOOL_ROUNDS = 6;
 
 const cors = {
@@ -32,7 +32,7 @@ Keep answers short and concrete: a direct answer first, then at most a few suppo
 type ToolInput = Record<string, unknown>;
 
 const dateField = { type: 'string', description: 'Calendar date YYYY-MM-DD' };
-const TOOLS: Anthropic.Beta.BetaTool[] = [
+const TOOL_DEFS = [
   {
     name: 'assistant_overview',
     description: "Net worth, available cash, card debt, this month's spending and income, and every account balance. Also returns today's date.",
@@ -84,6 +84,16 @@ const TOOLS: Anthropic.Beta.BetaTool[] = [
   },
 ];
 
+const TOOLS = TOOL_DEFS.map((t) => ({
+  type: 'function' as const,
+  function: { name: t.name, description: t.description, parameters: t.input_schema },
+}));
+
+type ChatMessage =
+  | { role: 'system' | 'user' | 'assistant'; content: string | null; tool_calls?: ToolCall[] }
+  | { role: 'tool'; tool_call_id: string; content: string };
+type ToolCall = { id: string; type: 'function'; function: { name: string; arguments: string } };
+
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 const str = (v: unknown, max = 80) => (typeof v === 'string' && v.length <= max ? v : undefined);
 const date = (v: unknown) => (typeof v === 'string' && ISO.test(v) ? v : undefined);
@@ -126,7 +136,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
 
-  const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
+  const apiKey = Deno.env.get('OPENAI_API_KEY');
   if (!apiKey) return json({ error: 'not_configured' }, 503);
 
   const authHeader = req.headers.get('Authorization');
@@ -153,58 +163,61 @@ Deno.serve(async (req) => {
   ) {
     return json({ error: 'bad_request' }, 400);
   }
-  const messages: Anthropic.Beta.BetaMessageParam[] = history.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content! }));
+  const messages: ChatMessage[] = [
+    { role: 'system', content: SYSTEM },
+    ...history.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content! })),
+  ];
 
-  const client = new Anthropic({ apiKey });
   try {
     for (let round = 0; round <= MAX_TOOL_ROUNDS; round++) {
-      const response = await client.beta.messages.create({
-        model: MODEL,
-        max_tokens: 16000,
-        system: SYSTEM,
-        tools: round < MAX_TOOL_ROUNDS ? TOOLS : [],
-        output_config: { effort: 'medium' },
-        // Server-side refusal fallback: a declined request is re-run on Anthropic's recommended model.
-        betas: ['server-side-fallback-2026-07-01'],
-        fallbacks: 'default',
-        messages,
-      } as Anthropic.Beta.MessageCreateParamsNonStreaming);
-
-      if (response.stop_reason === 'refusal') {
+      const res = await fetch(OPENAI_URL, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: MODEL,
+          max_completion_tokens: 4000,
+          messages,
+          // The last round offers no tools, forcing a final text answer.
+          ...(round < MAX_TOOL_ROUNDS ? { tools: TOOLS } : {}),
+        }),
+      });
+      if (res.status === 401) return json({ error: 'not_configured' }, 503);
+      if (res.status === 429) return json({ error: 'rate_limited' }, 429);
+      if (!res.ok) {
+        console.error('assistant upstream', res.status, await res.text());
+        return json({ error: 'upstream_error' }, 502);
+      }
+      const data = await res.json();
+      const choice = data.choices?.[0];
+      const msg = choice?.message as { content?: string | null; refusal?: string | null; tool_calls?: ToolCall[] } | undefined;
+      if (!msg) return json({ error: 'upstream_error' }, 502);
+      if (msg.refusal) {
         return json({ reply: "I can't help with that one. Try asking about your spending, budgets, balances or goals." });
       }
-      // Append the full content (thinking blocks included) so the conversation stays append-only.
-      messages.push({ role: 'assistant', content: response.content });
 
-      if (response.stop_reason !== 'tool_use') {
-        const reply = response.content
-          .filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text')
-          .map((b) => b.text)
-          .join('\n')
-          .trim();
-        return json({ reply: reply || 'I could not find an answer to that.' });
+      const calls = msg.tool_calls ?? [];
+      if (calls.length === 0) {
+        return json({ reply: msg.content?.trim() || 'I could not find an answer to that.' });
       }
+      messages.push({ role: 'assistant', content: msg.content ?? null, tool_calls: calls });
 
-      const results: Anthropic.Beta.BetaToolResultBlockParam[] = [];
-      await Promise.all(
-        response.content.map(async (block) => {
-          if (block.type !== 'tool_use') return;
+      const results = await Promise.all(
+        calls.map(async (call): Promise<ChatMessage> => {
           try {
-            const { fn, args } = toRpc(block.name, (block.input ?? {}) as ToolInput);
-            const { data, error } = await supabase.rpc(fn, args);
+            const input = JSON.parse(call.function.arguments || '{}') as ToolInput;
+            const { fn, args } = toRpc(call.function.name, input);
+            const { data: rows, error } = await supabase.rpc(fn, args);
             if (error) throw new Error(error.message);
-            results.push({ type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(data) });
+            return { role: 'tool', tool_call_id: call.id, content: JSON.stringify(rows) };
           } catch (err) {
-            results.push({ type: 'tool_result', tool_use_id: block.id, content: `Error: ${(err as Error).message}`, is_error: true });
+            return { role: 'tool', tool_call_id: call.id, content: `Error: ${(err as Error).message}` };
           }
         }),
       );
-      messages.push({ role: 'user', content: results });
+      messages.push(...results);
     }
     return json({ reply: 'That needed too many steps. Try a narrower question.' });
   } catch (err) {
-    if (err instanceof Anthropic.AuthenticationError) return json({ error: 'not_configured' }, 503);
-    if (err instanceof Anthropic.RateLimitError) return json({ error: 'rate_limited' }, 429);
     console.error('assistant error', err);
     return json({ error: 'upstream_error' }, 502);
   }

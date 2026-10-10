@@ -68,13 +68,13 @@ first use, and never caches API responses.
 ## 4. AI assistant
 
 ```bash
-npx supabase secrets set ANTHROPIC_API_KEY=sk-ant-...     # stored server-side only
+npx supabase secrets set OPENAI_API_KEY=sk-...     # stored server-side only
 npx supabase functions deploy assistant
 ```
 Locally, put the key in `supabase/functions/.env` (gitignored) and run `npx supabase functions serve`.
 - **Without a key:** the Ask sheet shows these steps, and the rest of the app is unaffected.
-- **Model and fallback:** the function uses `claude-opus-5-5` at medium effort, with Anthropic's
-  server-side refusal fallback enabled.
+- **Model:** the function calls OpenAI Chat Completions with `gpt-5.4-mini` and the six read-only
+  tools as function calls. Override with `npx supabase secrets set OPENAI_MODEL=<model>`.
 
 ## 5. Local development on your phone
 
