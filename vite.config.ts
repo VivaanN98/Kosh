@@ -1,49 +1,37 @@
 /// <reference types="vitest/config" />
-import { defineConfig, type PluginOption } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
-import mkcert from 'vite-plugin-mkcert';
-import { networkInterfaces } from 'node:os';
 import { fileURLToPath, URL } from 'node:url';
 
-/** LAN IPv4 addresses, so the dev certificate is valid when opened from a phone. */
-function lanHosts(): string[] {
-  const hosts: string[] = [];
-  for (const list of Object.values(networkInterfaces())) {
-    for (const addr of list ?? []) {
-      if (addr.family === 'IPv4' && !addr.internal) hosts.push(addr.address);
-    }
-  }
-  return hosts;
-}
-
-// HTTPS is on by default for `npm run dev` (camera access on a phone needs a secure context).
-// Set DEV_HTTP=1 to serve plain http (used by Playwright; localhost is already a secure context).
-const useHttps = !process.env.DEV_HTTP && !process.env.VITEST;
+// Local Supabase is proxied through the dev server at /sb so a phone on the Cloudflare tunnel
+// (https) can reach it same-origin, without mixed content or exposing port 54321.
+const SUPABASE_LOCAL = process.env.SUPABASE_PROXY_TARGET ?? 'http://127.0.0.1:54321';
+const supabaseProxy = {
+  '/sb': {
+    target: SUPABASE_LOCAL,
+    changeOrigin: true,
+    rewrite: (path: string) => path.replace(/^\/sb/, ''),
+  },
+};
 
 export default defineConfig({
-  plugins: [
-    react(),
-    tailwindcss(),
-    ...(useHttps
-      ? [
-          mkcert({
-            savePath: fileURLToPath(new URL('./certs', import.meta.url)),
-            hosts: ['localhost', '127.0.0.1', ...lanHosts()],
-          }) as PluginOption,
-        ]
-      : []),
-  ],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   server: {
     port: 5173,
     strictPort: true,
+    // Cloudflare quick tunnels (npm run dev:phone) use random *.trycloudflare.com hosts.
+    allowedHosts: ['.trycloudflare.com'],
+    proxy: supabaseProxy,
   },
   preview: {
     port: 4173,
     strictPort: true,
+    allowedHosts: ['.trycloudflare.com'],
+    proxy: supabaseProxy,
   },
   build: {
     target: 'es2022',
@@ -70,6 +58,8 @@ export default defineConfig({
           environment: 'node',
           globals: true,
           include: ['tests/db/**/*.test.ts'],
+          // Server-side test credentials (service role) from .env.local — never exposed to the browser.
+          env: loadEnv('test', process.cwd(), ''),
           testTimeout: 30_000,
           hookTimeout: 60_000,
           fileParallelism: false,
