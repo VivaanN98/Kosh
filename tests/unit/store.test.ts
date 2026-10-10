@@ -89,4 +89,23 @@ describe('AppStore optimistic writes', () => {
     s = store.getSnapshot();
     expect(totalSpending(s.entries, s.system!, '2026-10-01', '2026-10-31')).toBe(12000);
   });
+
+  it('scheduled jobs materialise automatic and reminder rules once and close statements', async () => {
+    const { store, demo, bank, food } = await setup();
+    const card = await demo.createAccount({ name: 'Card', kind: 'credit_card', statementDay: 15, dueDays: 20 }, 'acct:sched-card');
+    await demo.postTransaction({ type: 'expense', amount: 300000, occurredOn: '2026-08-20', accountId: card.id, categoryId: food.id }, 'tx:sched-card-buy');
+    const rent = await demo.createRecurringRule({ name: 'Rent', type: 'expense', amount: 1000000, accountId: bank.id, categoryId: food.id, frequency: 'monthly', startOn: '2026-08-31', anchorDay: 31, mode: 'automatic' });
+    const gym = await demo.createRecurringRule({ name: 'Gym', type: 'expense', amount: 150000, accountId: bank.id, categoryId: food.id, frequency: 'monthly', startOn: '2026-09-03', mode: 'reminder' });
+    await store.load();
+    await store.runScheduledJobs('2026-10-10');
+    await store.runScheduledJobs('2026-10-10');
+    const s = store.getSnapshot();
+    const rentOcc = s.occurrences.filter((o) => o.ruleId === rent.id).map((o) => [o.dueOn, o.status]);
+    expect(rentOcc).toEqual([['2026-08-31', 'posted'], ['2026-09-30', 'posted']]);
+    expect(s.occurrences.filter((o) => o.ruleId === gym.id).map((o) => o.status)).toEqual(['pending', 'pending']);
+    expect(s.transactions.filter((t) => t.amount === 1000000)).toHaveLength(2);
+    expect(s.transactions.filter((t) => t.amount === 150000)).toHaveLength(0);
+    const statements = s.statements.filter((x) => x.accountId === card.id).map((x) => [x.periodEnd, x.statementBalance]);
+    expect(statements).toContainEqual(['2026-09-15', 300000]);
+  });
 });
