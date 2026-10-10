@@ -1,29 +1,33 @@
-import { CreditCard } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router';
 import { Section } from '@/components/ui/bits';
-import { useDerived, useSnapshot } from '@/data/hooks';
-import { NETWORK_LABEL } from '@/domain/cards/artwork';
+import { useSnapshot } from '@/data/hooks';
+import type { PaymentCard } from '@/domain/types';
+import { AddCardSheet } from './AddCardSheet';
+import { Wallet } from './Wallet';
+import { readVariant, WalletProvider } from './WalletContext';
 
-/** Temporary list of payment cards; replaced by the chosen wallet variant in Phase 7. */
+/** Cards inside Accounts, using the variant picked in the Design Lab (until one is finalised). */
 export function CardsSection() {
   const snap = useSnapshot();
-  const d = useDerived();
-  const cards = snap.cards.filter((c) => !c.archivedAt);
-  if (cards.length === 0) return null;
+  const cards = useMemo(() => snap.cards.filter((c) => !c.archivedAt), [snap.cards]);
+  const [editing, setEditing] = useState<PaymentCard | null>(null);
+  const [variant] = useState(readVariant);
   return (
-    <Section title="Cards">
-      <ul className="card divide-y divide-[var(--line)] p-1.5">
-        {cards.map((c) => (
-          <li key={c.id} className="flex min-h-[56px] items-center gap-3 px-2">
-            <CreditCard size={20} className="text-text-2" aria-hidden="true" />
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[15px] font-medium">{c.displayName ?? c.issuer}</span>
-              <span className="block text-[12.5px] text-text-3">
-                {NETWORK_LABEL[c.network]} {c.cardType} · {d.accountById.get(c.accountId)?.name}
-              </span>
-            </span>
-          </li>
-        ))}
-      </ul>
-    </Section>
+    <WalletProvider>
+      <Section
+        title="Cards"
+        action={
+          <Link to="/design-lab/cards" className="text-[13px] font-medium text-text-2 hover:text-text">
+            Design Lab
+          </Link>
+        }
+      >
+        <div className="mx-auto max-w-[420px]">
+          <Wallet variant={variant} cards={cards} onEdit={setEditing} />
+        </div>
+      </Section>
+      <AddCardSheet editing={editing} onEditDone={() => setEditing(null)} />
+    </WalletProvider>
   );
 }

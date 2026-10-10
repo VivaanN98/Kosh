@@ -13,6 +13,8 @@ export interface AddPreset {
   toAccountId?: Uuid;
   /** Prefilled amount in paise (e.g. a card statement's remaining balance). */
   amount?: Paise;
+  /** Pay with a specific card (its linked account is used). */
+  paymentCardId?: Uuid;
 }
 
 interface AddSheetApi {

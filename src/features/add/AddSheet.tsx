@@ -66,7 +66,7 @@ export default function AddSheet({ open, preset, onClose }: { open: boolean; pre
   const [accountId, setAccountId] = useState<Uuid | null>(
     () => editing?.accountId ?? refundOf?.accountId ?? preset.accountId ?? defaultAccount(preset.mode ?? 'expense', d.activeAccounts, snap.transactions)?.id ?? null,
   );
-  const [paymentCardId, setPaymentCardId] = useState<Uuid | null>(() => editing?.paymentCardId ?? refundOf?.paymentCardId ?? null);
+  const [paymentCardId, setPaymentCardId] = useState<Uuid | null>(() => editing?.paymentCardId ?? refundOf?.paymentCardId ?? preset.paymentCardId ?? null);
   const [toAccountId, setToAccountId] = useState<Uuid | null>(() => editing?.toAccountId ?? preset.toAccountId ?? null);
   const [date, setDate] = useState(() => editing?.occurredOn ?? d.today);
   const [merchant, setMerchant] = useState(() => editing?.merchant ?? refundOf?.merchant ?? '');

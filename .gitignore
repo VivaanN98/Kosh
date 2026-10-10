@@ -19,3 +19,4 @@ certs/
 .tools/
 .shot.mjs
 .dbg.mjs
+.lab.mjs
