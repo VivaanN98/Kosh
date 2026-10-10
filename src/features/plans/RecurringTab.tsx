@@ -1,43 +1,64 @@
 import { useState } from 'react';
-import { BellRing, Check, Pause, Play, Plus, Repeat, SkipForward, Trash2, XCircle } from 'lucide-react';
+import { BellRing, Check, Pause, Play, Plus, Repeat, SkipForward, Sparkles, Trash2, XCircle } from 'lucide-react';
 import { EmptyState, Section } from '@/components/ui/bits';
 import { Button } from '@/components/ui/Button';
 import { Money } from '@/components/ui/Money';
 import { IconTile } from '@/components/ui/CategoryIcon';
 import { useToast } from '@/components/ui/Toast';
 import { useDerived, useSnapshot, useStore } from '@/data/hooks';
-import { describeSchedule, nextOccurrence } from '@/domain/recurring';
+import { describeSchedule, monthlyEquivalent, nextOccurrence } from '@/domain/recurring';
 import { addDays, formatRelativeDay } from '@/lib/dates';
 import { toKoshError } from '@/domain/errors';
-import type { RecurringRule } from '@/domain/types';
+import { formatINR } from '@/lib/money';
+import type { RecurringRule, Subscription } from '@/domain/types';
 import { RuleFormSheet } from './RuleFormSheet';
+import { SubscriptionRow } from './SubscriptionRow';
 
 export default function RecurringTab() {
   const snap = useSnapshot();
-  const [form, setForm] = useState<RecurringRule | 'new' | null>(null);
-  const subRules = new Set(snap.subscriptions.map((s) => s.recurringRuleId));
-  const rules = snap.rules.filter((r) => !subRules.has(r.id));
+  const [form, setForm] = useState<{ rule?: RecurringRule; sub?: boolean } | null>(null);
+  const byId = new Map(snap.rules.map((r) => [r.id, r]));
+  const subRuleIds = new Set(snap.subscriptions.map((s) => s.recurringRuleId));
+  const subs = snap.subscriptions
+    .map((s) => ({ s, r: byId.get(s.recurringRuleId) }))
+    .filter((x): x is { s: Subscription; r: RecurringRule } => !!x.r && x.r.status !== 'cancelled');
+  const monthly = subs.filter((x) => x.r.status === 'active').reduce((sum, { r }) => sum + monthlyEquivalent(r.amount, r.frequency, r.interval), 0);
+  const rules = snap.rules.filter((r) => !subRuleIds.has(r.id));
   const active = rules.filter((r) => r.status !== 'cancelled');
   const cancelled = rules.filter((r) => r.status === 'cancelled');
   return (
     <div>
       <PendingList />
+      <div className="mb-6 flex justify-end">
+        <Button size="sm" variant="primary" icon={<Plus size={15} />} onClick={() => setForm({})} data-testid="new-rule">
+          New recurring
+        </Button>
+      </div>
       <Section
-        title="Schedules"
-        action={
-          <Button size="sm" variant="primary" icon={<Plus size={15} />} onClick={() => setForm('new')} data-testid="new-rule">
-            Recurring
-          </Button>
-        }
+        title="Subscriptions"
+        action={subs.length > 0 ? <span className="num text-[13px] text-text-3">{formatINR(monthly, { decimals: 'never' })} / month</span> : undefined}
       >
+        {subs.length === 0 ? (
+          <div className="card">
+            <EmptyState icon={<Sparkles size={24} />} title="No subscriptions" body="Streaming, cloud storage, memberships. Tap New recurring and choose Subscription." />
+          </div>
+        ) : (
+          <ul className="card divide-y divide-[var(--line)] p-1.5">
+            {subs.map(({ s, r }) => (
+              <SubscriptionRow key={s.id} sub={s} rule={r} onEdit={() => setForm({ rule: r, sub: true })} />
+            ))}
+          </ul>
+        )}
+      </Section>
+      <Section title="Bills, income & transfers">
         {active.length === 0 ? (
           <div className="card">
-            <EmptyState icon={<Repeat size={24} />} title="Nothing repeats yet" body="Rent, salary, SIPs, EMIs — set them once and confirm or auto-record each time." />
+            <EmptyState icon={<Repeat size={24} />} title="Nothing else repeats" body="Rent, salary, SIPs, EMIs: set them once and confirm or auto-record each time." />
           </div>
         ) : (
           <ul className="card divide-y divide-[var(--line)] p-1.5">
             {active.map((r) => (
-              <RuleRow key={r.id} rule={r} onEdit={() => setForm(r)} />
+              <RuleRow key={r.id} rule={r} onEdit={() => setForm({ rule: r })} />
             ))}
           </ul>
         )}
@@ -52,7 +73,7 @@ export default function RecurringTab() {
           </ul>
         </details>
       )}
-      {form && <RuleFormSheet rule={form === 'new' ? undefined : form} onClose={() => setForm(null)} />}
+      {form && <RuleFormSheet rule={form.rule} asSubscription={form.sub} onClose={() => setForm(null)} />}
     </div>
   );
 }

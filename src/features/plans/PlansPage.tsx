@@ -7,15 +7,16 @@ import { RouteSkeleton } from '@/components/layout/RouteSkeleton';
 const BudgetsTab = lazy(() => import('./BudgetsTab'));
 const GoalsTab = lazy(() => import('./GoalsTab'));
 const RecurringTab = lazy(() => import('./RecurringTab'));
-const SubscriptionsTab = lazy(() => import('./SubscriptionsTab'));
 
-const TABS = ['budgets', 'goals', 'recurring', 'subscriptions'] as const;
+const TABS = ['budgets', 'goals', 'recurring'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function PlansPage() {
   const { tab: raw } = useParams();
   const navigate = useNavigate();
-  const tab: Tab = (TABS as readonly string[]).includes(raw ?? '') ? (raw as Tab) : 'budgets';
+  // Subscriptions used to be their own tab; old links land on Recurring, where they now live.
+  const key = raw === 'subscriptions' ? 'recurring' : raw;
+  const tab: Tab = (TABS as readonly string[]).includes(key ?? '') ? (key as Tab) : 'budgets';
   return (
     <Page>
       <PageHeader eyebrow="Budgets, goals and what repeats" title="Plans" />
@@ -30,15 +31,15 @@ export default function PlansPage() {
             { value: 'budgets', label: 'Budgets', testId: 'tab-budgets' },
             { value: 'goals', label: 'Goals', testId: 'tab-goals' },
             { value: 'recurring', label: 'Recurring', testId: 'tab-recurring' },
-            { value: 'subscriptions', label: <><span className="sm:hidden">Subs</span><span className="hidden sm:inline">Subscriptions</span></>, testId: 'tab-subscriptions' },
           ]}
         />
       </div>
       <Suspense fallback={<RouteSkeleton />}>
-        {tab === 'budgets' && <BudgetsTab />}
-        {tab === 'goals' && <GoalsTab />}
-        {tab === 'recurring' && <RecurringTab />}
-        {tab === 'subscriptions' && <SubscriptionsTab />}
+        <div key={tab} className="tab-enter">
+          {tab === 'budgets' && <BudgetsTab />}
+          {tab === 'goals' && <GoalsTab />}
+          {tab === 'recurring' && <RecurringTab />}
+        </div>
       </Suspense>
     </Page>
   );

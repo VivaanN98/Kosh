@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { AnimatePresence } from 'motion/react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { Archive, ArchiveRestore, ArrowLeft, ArrowLeftRight, CreditCard, Pencil, Plus, Scale, Settings2 } from 'lucide-react';
 import { EmptyState, Page, Progress, Section, TextField } from '@/components/ui/bits';
 import { Button } from '@/components/ui/Button';
@@ -45,7 +45,8 @@ function AccountDetail({ account: a }: { account: Account }) {
   const add = useAddSheet();
   const navigate = useNavigate();
   const [selected, setSelected] = useState<Transaction | null>(null);
-  const [reconciling, setReconciling] = useState(false);
+  const [params, setParams] = useSearchParams();
+  const [reconciling, setReconciling] = useState(params.get('balance') === '1');
   const [editing, setEditing] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const isCard = a.kind === 'credit_card';
@@ -134,7 +135,7 @@ function AccountDetail({ account: a }: { account: Account }) {
             </Button>
           )}
           <Button size="sm" icon={<Scale size={15} />} onClick={() => setReconciling(true)} data-testid="reconcile">
-            Reconcile
+            {isCard ? 'Reconcile' : 'Set balance'}
           </Button>
           <Button size="sm" variant="ghost" icon={<Pencil size={15} />} onClick={() => setEditing(true)}>
             Rename
@@ -230,7 +231,14 @@ function AccountDetail({ account: a }: { account: Account }) {
       </Section>
 
       <TransactionDetailSheet tx={selected} onClose={() => setSelected(null)} />
-      <ReconcileSheet account={a} open={reconciling} onClose={() => setReconciling(false)} />
+      <ReconcileSheet
+        account={a}
+        open={reconciling}
+        onClose={() => {
+          setReconciling(false);
+          if (params.has('balance')) setParams({}, { replace: true });
+        }}
+      />
       <RenameSheet account={a} open={editing} onClose={() => setEditing(false)} />
       {isCard && <CardSettingsSheet account={a} open={settingsOpen} onClose={() => setSettingsOpen(false)} />}
     </Page>

@@ -1,10 +1,11 @@
 import { m } from 'motion/react';
-import { Suspense, type ReactNode } from 'react';
+import { Suspense, useState, type ReactNode } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router';
 import { ChartNoAxesColumn, House, Plus, Target, WalletCards } from 'lucide-react';
 import { springs } from '@/motion/springs';
 import { useBackend, useSnapshot } from '@/data/hooks';
 import { useAddSheet } from '@/features/add/AddSheetContext';
+import { EnterDirection } from '@/components/ui/bits';
 import { RouteSkeleton } from './RouteSkeleton';
 
 const NAV = [
@@ -136,7 +137,7 @@ function TabBar() {
                 {({ isActive }) => (
                   <>
                     {isActive && <m.span layoutId="tab-pill" className="absolute inset-0 rounded-full bg-surface-2" transition={springs.snappy} />}
-                    <item.icon size={22} strokeWidth={isActive ? 2.1 : 1.7} className="relative" aria-hidden="true" />
+                    <item.icon size={22} strokeWidth={isActive ? 2.1 : 1.7} className={`relative ${isActive ? 'tab-icon-pop' : ''}`} aria-hidden="true" />
                     <span className="relative">{item.label}</span>
                   </>
                 )}
@@ -160,8 +161,17 @@ function MobileTopBar() {
   );
 }
 
+const TAB_ORDER = ['', 'insights', 'accounts', 'plans'];
+
 export function AppShell({ children }: { children?: ReactNode }) {
   const location = useLocation();
+  const section = location.pathname.split('/')[1] ?? '';
+  // Remember the previous tab so content can enter from the side the new one sits on.
+  const [nav, setNav] = useState({ section, prev: section });
+  if (nav.section !== section) setNav({ section, prev: nav.section });
+  const from = TAB_ORDER.indexOf(nav.prev);
+  const to = TAB_ORDER.indexOf(section);
+  const dx = from < 0 || to < 0 ? 0 : Math.sign(to - from);
   return (
     <div className="min-h-dvh overflow-x-clip md:pl-[var(--sidebar-w)]">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-[12px] focus:bg-surface focus:px-4 focus:py-2 focus:shadow-2">
@@ -169,9 +179,11 @@ export function AppShell({ children }: { children?: ReactNode }) {
       </a>
       <SideNav />
       <MobileTopBar />
-      <Suspense key={location.pathname.split('/')[1]} fallback={<RouteSkeleton />}>
-        {children ?? <Outlet />}
-      </Suspense>
+      <EnterDirection.Provider value={dx}>
+        <Suspense key={section} fallback={<RouteSkeleton />}>
+          {children ?? <Outlet />}
+        </Suspense>
+      </EnterDirection.Provider>
       <TabBar />
     </div>
   );

@@ -231,6 +231,59 @@
 }
 
 /*
+ * Route enter: a quick cascade. Each top-level block rises into place a beat after the one above and
+ * drifts in from the side its tab sits on (--enter-x). Transform + opacity only; `backwards` fill, so
+ * nothing keeps a transform (or a containing block for fixed children) once it has landed.
+ */
+@keyframes page-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--enter-x, 0px), 14px, 0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes icon-pop {
+  0% {
+    transform: scale(0.82);
+  }
+  60% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.page-enter > * {
+  animation: fade-in 160ms ease-out backwards;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .page-enter > * {
+    animation: page-rise 380ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+  .page-enter > :nth-child(2) { animation-delay: 40ms; }
+  .page-enter > :nth-child(3) { animation-delay: 80ms; }
+  .page-enter > :nth-child(4) { animation-delay: 120ms; }
+  .page-enter > :nth-child(5) { animation-delay: 160ms; }
+  .page-enter > :nth-child(6) { animation-delay: 190ms; }
+  .page-enter > :nth-child(n + 7) { animation-delay: 220ms; }
+  .tab-enter {
+    animation: page-rise 260ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+  .tab-icon-pop {
+    animation: icon-pop 320ms cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tab-enter {
+    animation: fade-in 160ms ease-out backwards;
+  }
+}
+
+/*
  * Touch devices: fields at 16px or larger. Below that, iOS Safari zooms the page on focus.
  * Unlayered on purpose, so it wins over the text-[15px] utilities.
  */

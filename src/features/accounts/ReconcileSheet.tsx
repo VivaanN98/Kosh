@@ -50,16 +50,16 @@ export function ReconcileSheet({ account, open, onClose }: { account: Account; o
     <Sheet
       open={open}
       onClose={onClose}
-      title={`Reconcile ${account.name}`}
+      title={isCard ? `Reconcile ${account.name}` : `Set balance: ${account.name}`}
       footer={
         <Button variant="primary" size="lg" block disabled={actual === null} loading={busy} onClick={confirm} icon={<Scale size={18} />} data-testid="confirm-reconcile">
-          {diff === 0 ? 'Mark as reconciled' : 'Record adjustment'}
+          {diff === 0 ? 'Mark as reconciled' : isCard ? 'Record adjustment' : 'Set balance'}
         </Button>
       }
     >
       <div className="space-y-4 pb-2">
         <p className="text-[14px] text-text-2">
-          Kosh shows <Money amount={isCard ? -ledger : ledger} className="font-medium text-text" /> {isCard ? 'owed' : ''} on this date. Enter what your {isCard ? 'card statement' : 'bank'} shows.
+          Kosh shows <Money amount={isCard ? -ledger : ledger} className="font-medium text-text" /> {isCard ? 'owed' : ''} on this date. Enter what {isCard ? 'your card statement shows' : 'this account actually holds right now'}.
         </p>
         <div className="grid grid-cols-2 gap-3">
           <AmountField label={isCard ? 'Outstanding per bank' : 'Balance per bank'} value={value} onChange={(e) => setValue(e.target.value)} placeholder="0" data-testid="reconcile-amount" />
@@ -71,7 +71,7 @@ export function ReconcileSheet({ account, open, onClose }: { account: Account; o
               <span className="text-positive">Everything matches.</span>
             ) : (
               <>
-                Difference <Money amount={isCard ? -diff : diff} signed className="font-semibold" /> will be posted as a balance adjustment. It does not count as income or spending.
+                Difference <Money amount={isCard ? -diff : diff} signed className="font-semibold" /> is saved as a balance adjustment. It never counts as income or spending.
               </>
             )}
           </div>

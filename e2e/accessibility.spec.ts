@@ -27,7 +27,7 @@ test('reduced motion: sheets still work, decorative motion is removed', async ({
 test('glass falls back to solid surfaces when transparency is reduced', async ({ page }, info) => {
   test.skip(info.project.name !== 'mobile', 'mobile');
   await signIn(page);
-  const tabbar = page.locator('nav.glass').last();
+  const tabbar = page.locator('nav ul.glass').last();
   const before = await tabbar.evaluate((el) => getComputedStyle(el).backdropFilter);
   expect(before).toContain('blur');
   await page.goto('/settings');

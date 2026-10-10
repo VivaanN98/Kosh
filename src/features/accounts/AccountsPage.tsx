@@ -57,6 +57,12 @@ export default function AccountsPage() {
         </div>
       </section>
 
+      {d.activeAccounts.some((a) => (a.kind === 'bank' || a.kind === 'cash') && (d.balances.get(a.id) ?? 0) <= 0) && (
+        <p className="mb-8 rounded-[14px] bg-warning-soft px-4 py-3 text-[13.5px] text-text">
+          Net worth only counts what you've told Kosh about. Open an account marked <span className="font-medium">Set your current balance</span> and enter what it holds today.
+        </p>
+      )}
+
       <CardsSection />
 
       {GROUPS.map((g) => {
@@ -113,6 +119,8 @@ function AccountRow({ account: a }: { account: Account }) {
     return st ? statementStatus(st, paidSince(snap.entries, snap.transactions, a.id, st.periodEnd)) : null;
   }, [isCard, snap.statements, snap.entries, snap.transactions, a.id]);
   const goal = a.kind === 'goal' ? snap.goals.find((g) => g.accountId === a.id) : undefined;
+  // A bank/cash account at zero or below usually just hasn't been given its starting balance yet.
+  const needsBalance = !a.archivedAt && (a.kind === 'bank' || a.kind === 'cash') && bal <= 0;
   const subtitle = isCard
     ? due && !due.isPaid
       ? due.statement.dueOn < d.today
@@ -125,11 +133,15 @@ function AccountRow({ account: a }: { account: Account }) {
 
   return (
     <li>
-      <Link to={`/accounts/${a.id}`} className="flex min-h-[64px] items-center gap-3 rounded-[14px] px-2 py-2 hover:bg-surface-2" data-testid={`account-row-${a.name}`}>
+      <Link to={needsBalance ? `/accounts/${a.id}?balance=1` : `/accounts/${a.id}`} className="flex min-h-[64px] items-center gap-3 rounded-[14px] px-2 py-2 hover:bg-surface-2" data-testid={`account-row-${a.name}`}>
         <IconTile name={accountIcon(a)} color={a.color} />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[15px] font-medium">{a.name}</span>
-          <span className={`block truncate text-[12.5px] ${due && !due.isPaid ? (due.statement.dueOn < d.today ? 'text-negative' : 'text-warning') : 'text-text-3'}`}>{subtitle}</span>
+          {needsBalance ? (
+            <span className="block truncate text-[12.5px] font-medium text-warning">Set your current balance</span>
+          ) : (
+            <span className={`block truncate text-[12.5px] ${due && !due.isPaid ? (due.statement.dueOn < d.today ? 'text-negative' : 'text-warning') : 'text-text-3'}`}>{subtitle}</span>
+          )}
         </span>
         <span className="text-right">
           <Money amount={isCard ? -bal : bal} tone={isCard && bal < 0 ? 'negative' : bal < 0 ? 'negative' : 'neutral'} className="block text-[15px] font-medium" />

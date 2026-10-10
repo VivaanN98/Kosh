@@ -1,5 +1,5 @@
 import { m } from 'motion/react';
-import { forwardRef, useEffect, useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+import { createContext, forwardRef, useContext, useEffect, useState, type CSSProperties, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { springs } from '@/motion/springs';
 
@@ -46,6 +46,9 @@ export function Section({ title, action, children, className = '' }: { title?: R
   );
 }
 
+/** -1 / 0 / 1: which side the incoming tab sits on, so content drifts in from that direction. */
+export const EnterDirection = createContext(0);
+
 let painted = false;
 
 /**
@@ -62,21 +65,24 @@ export function signalPainted() {
   requestAnimationFrame(() => setTimeout(() => window.dispatchEvent(new Event('kosh:painted')), 0));
 }
 
-/** Fade + rise for route content. Transform/opacity only. */
+/**
+ * Route content enters as a quick cascade: each top-level block rises into place a beat after the one
+ * above it, drifting in from the side the tab sits on. CSS only (`.page-enter`, transform + opacity),
+ * so it costs no JavaScript and respects reduced motion there.
+ */
 export function Page({ children, className = '' }: { children: ReactNode; className?: string }) {
   const first = useIsFirstPaint();
+  const dx = useContext(EnterDirection);
   // The first real page on screen releases deferred loaders (motion features, preloads).
   useEffect(() => signalPainted(), []);
   return (
-    <m.main
+    <main
       id="main"
-      initial={first ? false : { opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={springs.smooth}
-      className={`mx-auto w-full max-w-[var(--content-max)] px-4 pb-[calc(var(--tabbar-h)+40px+var(--safe-bottom))] pt-[calc(12px+var(--safe-top))] md:px-8 md:pb-16 md:pt-8 ${className}`}
+      style={{ '--enter-x': `${dx * 18}px` } as CSSProperties}
+      className={`${first ? '' : 'page-enter '}mx-auto w-full max-w-[var(--content-max)] px-4 pb-[calc(var(--tabbar-h)+40px+var(--safe-bottom))] pt-[calc(12px+var(--safe-top))] md:px-8 md:pb-16 md:pt-8 ${className}`}
     >
       {children}
-    </m.main>
+    </main>
   );
 }
 

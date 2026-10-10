@@ -16,7 +16,8 @@ import type { Frequency, RecurringMode, RecurringRule, RecurringType } from '@/d
  * Create/edit a recurring rule, or (asSubscription) a subscription, which owns exactly one rule.
  * Charges only ever come from the rule, so a subscription can never double-charge.
  */
-export function RuleFormSheet({ rule, asSubscription = false, onClose }: { rule?: RecurringRule; asSubscription?: boolean; onClose: () => void }) {
+export function RuleFormSheet({ rule, asSubscription: editingSub = false, onClose }: { rule?: RecurringRule; asSubscription?: boolean; onClose: () => void }) {
+  const [asSubscription, setAsSubscription] = useState(editingSub);
   const store = useStore();
   const snap = useSnapshot();
   const d = useDerived();
@@ -96,16 +97,27 @@ export function RuleFormSheet({ rule, asSubscription = false, onClose }: { rule?
       }
     >
       <div className="space-y-4 pb-2">
-        {!asSubscription && (
+        {!editingSub && (
           <Segmented
             label="Type"
-            value={type === 'card_payment' ? 'transfer' : type}
-            onChange={(v) => setType(v)}
+            value={asSubscription ? 'subscription' : type === 'card_payment' ? 'transfer' : type}
+            onChange={(v) => {
+              const sub = v === 'subscription';
+              setAsSubscription(sub);
+              if (sub) {
+                setType('expense');
+                if (!rule) setMode('automatic');
+              } else {
+                setType(v);
+                if (!rule) setMode('reminder');
+              }
+            }}
             className="w-full"
             options={[
               { value: 'expense', label: 'Expense' },
               { value: 'income', label: 'Income' },
               { value: 'transfer', label: 'Transfer' },
+              ...(rule ? [] : [{ value: 'subscription' as const, label: 'Subscription' }]),
             ]}
           />
         )}
