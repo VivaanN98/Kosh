@@ -6,6 +6,7 @@
 import { parseCardText } from '../../src/domain/cards/ocrParse';
 import { blurriness, preprocessForOcr } from '../../src/features/cards/scan/preprocess';
 import type { CardNetwork, CardType } from '../../src/domain/types';
+import type { Worker as TesseractWorker } from 'tesseract.js';
 
 interface Truth {
   issuer: string;
@@ -148,7 +149,7 @@ interface Engine {
 }
 
 const tesseractEngine = (): Engine => {
-  let worker: import('tesseract.js').Worker;
+  let worker: TesseractWorker;
   return {
     name: 'tesseract.js 7 (eng best_int)',
     async init() {
@@ -168,7 +169,7 @@ const tesseractEngine = (): Engine => {
 };
 
 const tesseractPreEngine = (): Engine => {
-  let worker: import('tesseract.js').Worker;
+  let worker: TesseractWorker;
   return {
     name: 'tesseract 2-pass (plain, then contrast/invert if fields missing)',
     async init() {
@@ -265,7 +266,7 @@ async function main() {
     for (const s of samples) {
       status.textContent = `${engine.name}: ${s.t.issuer} / ${s.cond}`;
       const r0 = performance.now();
-      let lines: string[] = [];
+      let lines: string[];
       try {
         lines = await engine.run(s.canvas);
       } catch {
