@@ -42,6 +42,21 @@
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent;
     background: var(--bg);
+    overscroll-behavior: none;
+    /* Taps fire immediately (no double-tap-zoom wait) and double-tap never zooms the UI. */
+    touch-action: manipulation;
+  }
+  /* Touch devices and the Android app: no scroll bars (they read as a website). Desktop keeps them. */
+  @media (pointer: coarse) {
+    html,
+    * {
+      scrollbar-width: none;
+    }
+    *::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
+    }
   }
   body {
     margin: 0;
