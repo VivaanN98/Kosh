@@ -37,17 +37,14 @@ writeFileSync('android/local.properties', `sdk.dir=${join(home, 'android-sdk').s
 
 const version = JSON.parse(readFileSync('package.json', 'utf8')).version;
 const versionCode = Number(execSync('git rev-list --count HEAD', { encoding: 'utf8' }).trim()) || 1;
-const gradleFile = 'android/app/build.gradle';
-writeFileSync(
-  gradleFile,
-  readFileSync(gradleFile, 'utf8')
-    .replace(/versionCode \d+/, `versionCode ${versionCode}`)
-    .replace(/versionName "[^"]*"/, `versionName "${version}"`),
-);
 console.log(`Building Kosh ${version} (versionCode ${versionCode})`);
 run('npx vite build --mode native');
 run('npx cap sync android');
-run(process.platform === 'win32' ? '.\\gradlew.bat assembleRelease --no-daemon' : './gradlew assembleRelease --no-daemon', { cwd: 'android' });
+// Version goes to Gradle as properties, so the tracked android/app/build.gradle is never rewritten.
+const gradle = process.platform === 'win32' ? '.\\gradlew.bat' : './gradlew';
+run(`${gradle} assembleRelease --no-daemon -PkoshVersionCode=${versionCode} -PkoshVersionName=${version}`, {
+  cwd: 'android',
+});
 
 mkdirSync('dist-apk', { recursive: true });
 const out = join('dist-apk', `Kosh-${version}.apk`);

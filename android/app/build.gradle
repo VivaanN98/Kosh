@@ -7,8 +7,8 @@ android {
         applicationId "app.kosh.ledger"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 28
-        versionName "0.1.0"
+        versionCode Integer.valueOf(project.findProperty("koshVersionCode") ?: "1")
+        versionName project.findProperty("koshVersionName") ?: "0.1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
