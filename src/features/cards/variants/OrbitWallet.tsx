@@ -1,8 +1,3 @@
-/**
- * Variant B — Orbit. A fanned deck with restrained rotation and depth. The focused card sits
- * upright in front; neighbours orbit behind it. Swipe, tap a neighbour, use the arrow buttons or
- * ←/→ keys to move focus; tap the front card to open it.
- */
 import { m, type PanInfo } from 'motion/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { CardFace } from '@/components/cards/CardFace';
@@ -28,7 +23,6 @@ export function OrbitWallet({ cards, state, onEdit }: { cards: PaymentCard[]; st
   };
 
   const onDragEnd = (_: unknown, info: PanInfo) => {
-    // Flick lands where it is heading: a quick short flick travels as far as a slow long drag.
     const end = info.offset.x + project(info.velocity.x, 0.99);
     if (end < -50) go(current + 1);
     else if (end > 50) go(current - 1);

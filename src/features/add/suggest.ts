@@ -1,16 +1,8 @@
-/**
- * Smart defaults for the Add sheet: most likely category and last-used account.
- * Pure functions so they are unit-tested and cheap.
- */
 import { diffDays, type IsoDate } from '@/lib/dates';
 import type { Account, Category, Transaction, Uuid } from '@/domain/types';
 
 export type AddMode = 'expense' | 'income' | 'transfer';
 
-/**
- * Rank categories for a transaction kind by recency-weighted frequency over the last 90 days.
- * A use today counts 1.0, decaying linearly to 0.2 at 90 days. Falls back to seed order.
- */
 export function rankCategories(
   kind: 'expense' | 'income',
   categories: readonly Category[],
@@ -50,7 +42,6 @@ export function rememberAccount(mode: AddMode, accountId: Uuid) {
   try {
     localStorage.setItem(LAST_KEY + mode, accountId);
   } catch {
-    /* optional convenience */
   }
 }
 
@@ -71,7 +62,6 @@ export function defaultAccount(mode: AddMode, accounts: readonly Account[], tran
   return usable.find((a) => a.kind === 'bank') ?? usable[0] ?? null;
 }
 
-/** Keypad input reducer on the amount string (max 10 integer digits, 2 decimals). */
 export function pressKey(current: string, key: string): string {
   if (key === 'back') return current.slice(0, -1);
   if (key === 'clear') return '';

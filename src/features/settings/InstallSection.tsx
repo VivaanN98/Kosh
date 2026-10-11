@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { Download, Smartphone } from 'lucide-react';
 import { Section } from '@/components/ui/bits';
 import { Button } from '@/components/ui/Button';
+import { isNativeApp } from '@/lib/platform';
 
-/** Install Kosh: native Android app, or the installable web app (PWA). */
 export function InstallSection() {
-  const native = !!(window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.();
+  const native = isNativeApp();
   const standalone = typeof window !== 'undefined' && window.matchMedia?.('(display-mode: standalone)').matches;
   const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
   const [installable, setInstallable] = useState(false);

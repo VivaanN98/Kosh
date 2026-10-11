@@ -1,7 +1,3 @@
-/**
- * Reports reconcile with the ledger: run the full demo dataset through the Demo adapter and check
- * that every report agrees with the base metrics.
- */
 import { beforeAll, describe, expect, it } from 'vitest';
 import { DemoRepository } from '@/data/demo/demoRepository';
 import { DemoStore } from '@/data/demo/store';
@@ -84,7 +80,6 @@ describe('reports reconcile with the ledger', () => {
   it('cash flow excludes internal moves and equity postings', () => {
     const flow = cashFlow(entries, accounts, '2026-07', '2026-10', sys.equity);
     const liquid = new Set(accounts.filter((a) => a.kind === 'cash' || a.kind === 'bank').map((a) => a.id));
-    // Expected: liquid-side amounts of income/expense/refund/card_payment/goal_transfer transactions.
     let inflow = 0;
     let outflow = 0;
     const byId = new Map(transactions.map((t) => [t.id, t]));

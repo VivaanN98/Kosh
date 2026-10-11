@@ -9,7 +9,6 @@ import { useWallet } from './WalletContext';
 
 export type PreviewState = 'live' | 'loading' | 'empty';
 
-/** Shared chrome for every wallet variant: loading, empty, add actions and the details panel. */
 export function WalletFrame({
   cards,
   state,
@@ -61,7 +60,6 @@ export function WalletFrame({
   );
 }
 
-/** Accessible label for a card button. */
 export function cardLabel(c: PaymentCard, accountName: string | undefined): string {
   return `${c.displayName ?? c.issuer}, ${c.network} ${c.cardType}${c.last4 ? ` ending ${c.last4}` : ''}${accountName ? `, linked to ${accountName}` : ''}`;
 }

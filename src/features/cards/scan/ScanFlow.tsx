@@ -1,13 +1,3 @@
-/**
- * Camera scan → on-device OCR → review. Privacy rules enforced here:
- * - The camera is requested only when this step mounts (i.e. after the user chose "Scan Card").
- * - The camera stops as soon as a frame is captured.
- * - The captured pixels and OCR text live only in local variables; they are wiped right after the
- *   issuer/network/type/last-4, template colours and the cleaned face picture (number, expiry, CVV
- *   and name removed — see cardFaceImage.ts) are derived. Nothing is uploaded; only the cleaned
- *   picture is kept, on this device, and only if the user saves the card.
- * - Every failure path falls back to manual entry with a clear message.
- */
 import { m } from 'motion/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Camera, Keyboard, RotateCcw, ShieldCheck } from 'lucide-react';
@@ -23,14 +13,9 @@ import { blurriness } from './preprocess';
 
 type Phase = 'starting' | 'live' | 'blurry' | 'reading' | 'review';
 
-/**
- * Crete blur score above this = probably too blurry. Deliberately conservative (synthetic sharp cards
- * score 0.09–0.22 at capture resolution, a 6px-blurred photo scores higher); a false alarm costs one
- * tap because the user can still choose "Use this photo". Real devices may need tuning.
- */
-export const BLUR_MAX = 0.28;
+const BLUR_MAX = 0.28;
 
-export function cameraErrorMessage(err: unknown): string {
+function cameraErrorMessage(err: unknown): string {
   const name = (err as { name?: string })?.name ?? '';
   if (name === 'NotAllowedError' || name === 'SecurityError' || name === 'PermissionDeniedError') {
     return 'Camera access was blocked. You can allow it in your browser settings later — for now, enter the card details below.';
@@ -57,7 +42,6 @@ export default function ScanFlow({
   const streamRef = useRef<MediaStream | null>(null);
   const [phase, setPhase] = useState<Phase>('starting');
   const [review, setReview] = useState<{ draft: CardDraft; uncertain: UncertainField[] } | null>(null);
-  // Latest callback without re-running the camera effect when the parent re-renders.
   const fallbackRef = useRef(onFallback);
   useEffect(() => {
     fallbackRef.current = onFallback;
@@ -70,8 +54,6 @@ export default function ScanFlow({
     if (videoRef.current) videoRef.current.srcObject = null;
   }, []);
 
-  // Request the camera (only now, after the explicit "Scan Card" choice). The session survives
-  // StrictMode's mount → unmount → mount in development, so the camera is requested exactly once.
   const session = useRef<{ promise: Promise<MediaStream | null>; active: boolean; attached: boolean } | null>(null);
   useEffect(() => {
     if (!session.current) {
@@ -109,7 +91,6 @@ export default function ScanFlow({
           await video.play().catch(() => undefined);
         }
         setPhase('live');
-        // Fetch the OCR engine while the user lines up the card.
         void import('./ocrEngine').then((m) => m.warmUpOcr());
       },
       (err) => {
@@ -128,7 +109,6 @@ export default function ScanFlow({
     };
   }, [fallback, stopCamera]);
 
-  /** Crop exactly the on-screen guide frame from the video (object-fit: cover mapping). */
   const grabFrame = (): HTMLCanvasElement | null => {
     const video = videoRef.current;
     const frame = frameRef.current;
@@ -142,7 +122,6 @@ export default function ScanFlow({
     const sy = (fr.top - vr.top + offY) / scale;
     const sw = fr.width / scale;
     const sh = fr.height / scale;
-    // Native resolution (never upscaled here: upscaling softens edges and fools the blur check).
     const canvas = document.createElement('canvas');
     const outW = Math.round(Math.min(sw, 1600));
     canvas.width = outW;
@@ -157,7 +136,7 @@ export default function ScanFlow({
     if (!canvas) return;
     if (blurriness(canvas) > BLUR_MAX) {
       if (pendingRef.current) pendingRef.current.width = 0;
-      pendingRef.current = canvas; // kept in memory only, in case the user chooses "Use this photo"
+      pendingRef.current = canvas;
       setPhase('blurry');
       return;
     }
@@ -188,7 +167,7 @@ export default function ScanFlow({
       artwork = artworkFromImage(canvas, ocr.words);
       face = await cleanCardFace(canvas, ocr.words, async (c) => (await recognizeCard(c)).words).catch(() => null);
       const parsed = parseCardText(ocr.lines);
-      ocr = null; // OCR text discarded: only the parsed fields below survive.
+      ocr = null;
       const draft: CardDraft = {
         issuer: parsed.issuer ?? '',
         network: parsed.network ?? 'visa',
@@ -208,7 +187,7 @@ export default function ScanFlow({
     } catch {
       fallback('Reading the card failed on this device. Please enter the details — we kept the card’s colours if we could.', { ...emptyDraft(), artwork, face });
     } finally {
-      canvas.width = 0; // the photo is gone
+      canvas.width = 0;
     }
   };
 
@@ -228,7 +207,6 @@ export default function ScanFlow({
     <div className="pb-2" data-testid="scan-flow">
       <div className="relative mx-auto aspect-[3/4] max-h-[60dvh] w-full overflow-hidden rounded-[22px] bg-black sm:aspect-[4/3]">
         <video ref={videoRef} className="absolute inset-0 h-full w-full object-cover" playsInline muted aria-label="Camera preview" data-testid="scan-video" />
-        {/* Guide frame: card-shaped, with a darkened surround and an animated scan line. */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div ref={frameRef} className="relative aspect-[1.586] w-[86%] rounded-[18px]" style={{ boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)' }}>
             {(['tl', 'tr', 'bl', 'br'] as const).map((k) => (

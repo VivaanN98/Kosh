@@ -6,16 +6,15 @@ test.describe.configure({ mode: 'serial' });
 test('card style lives in Settings: Stacked by default, all three selectable, persisted, used in Accounts', async ({ page }, info) => {
   test.skip(info.project.name !== 'desktop', 'desktop');
   await signIn(page);
-  await page.goto('/design-lab/cards'); // retired route redirects to Settings
+  await page.goto('/design-lab/cards');
   await expect(page).toHaveURL(/\/settings#card-style$/);
   const style = page.getByTestId('card-style');
   await expect(style.getByTestId('preview-stacked')).toBeVisible();
-  await expect(style.getByLabel(/SBI Global International, visa debit, linked to SBI Savings/)).toHaveCount(1);
+  await expect(style.getByLabel(/Test Visa Debit, visa debit, linked to Test Savings/)).toHaveCount(1);
   for (const v of ['orbit', 'carousel', 'stacked'] as const) {
     await style.getByTestId(`variant-${v}`).click();
     await expect(style.getByTestId(`preview-${v}`)).toBeVisible();
   }
-  // Orbit is keyboard operable.
   await style.getByTestId('variant-orbit').click();
   const deck = page.getByTestId('orbit-deck');
   const focused = deck.locator('[role=option][aria-selected=true]');
@@ -25,7 +24,6 @@ test('card style lives in Settings: Stacked by default, all three selectable, pe
   await expect(focused).not.toHaveAttribute('aria-label', before!);
   await page.keyboard.press('Enter');
   await expect(page.getByTestId('card-details').first()).toBeVisible();
-  // Persisted and applied to Accounts.
   await page.reload();
   await expect(page.getByTestId('card-style').getByTestId('variant-orbit')).toHaveAttribute('aria-checked', 'true');
   await page.goto('/accounts');

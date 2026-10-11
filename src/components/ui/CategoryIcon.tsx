@@ -1,7 +1,3 @@
-/**
- * Category/account icons stored by name. An explicit map keeps lucide tree-shaken
- * (importing icons dynamically by name would pull the whole set into the bundle).
- */
 import {
   BadgePercent, BedDouble, Bike, Briefcase, Building2, Car, CarTaxiFront, CircleEllipsis, Clapperboard, Coffee, Coins, CreditCard,
   Droplet, Dumbbell, Flame, Fuel, Gamepad2, Gift, GraduationCap, HeartPulse, House, Landmark, Laptop, Percent, Pill, Plane,
@@ -22,14 +18,11 @@ const ICONS: Record<string, LucideIcon> = {
   wallet: Wallet, wifi: Wifi, zap: Zap, 'piggy-bank': PiggyBank, transfer: ArrowLeftRight, refund: Undo2, scale: Scale,
 };
 
-export const ICON_NAMES = Object.keys(ICONS);
-
 export function IconByName({ name, size = 18, className, strokeWidth = 1.75 }: { name: string | null | undefined; size?: number; className?: string; strokeWidth?: number }) {
   const Icon = (name && ICONS[name]) || CircleEllipsis;
   return <Icon size={size} className={className} strokeWidth={strokeWidth} aria-hidden="true" />;
 }
 
-/** A soft tinted tile holding an icon (category, account, transaction type). */
 export function IconTile({ name, color, size = 40, iconSize = 18 }: { name: string | null | undefined; color?: string | null; size?: number; iconSize?: number }) {
   const tint = color ?? 'var(--text-2)';
   return (

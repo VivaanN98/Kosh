@@ -1,7 +1,3 @@
-/**
- * PWA: service worker registration (web only) and the install prompt. The Android app never loads
- * this — its files are bundled in the APK.
- */
 import { registerSW } from 'virtual:pwa-register';
 
 let applyUpdate: ((reload?: boolean) => Promise<void>) | null = null;

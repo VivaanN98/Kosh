@@ -1,7 +1,3 @@
-/**
- * On-device OCR (tesseract.js, self-hosted under /ocr). Loaded only when the user chooses Scan.
- * Images never leave the device: recognition runs in a Web Worker in this browser.
- */
 import type { Worker } from 'tesseract.js';
 import type { WordBox } from './artworkFromImage';
 
@@ -28,17 +24,15 @@ async function getWorker(onProgress?: (p: number) => void): Promise<Worker> {
   return workerPromise;
 }
 
-/** Start downloading the engine early (e.g. while the camera warms up). */
 export function warmUpOcr(onProgress?: (p: number) => void) {
   void getWorker(onProgress).catch(() => undefined);
 }
 
-export interface OcrResult {
+interface OcrResult {
   lines: string[];
   words: WordBox[];
 }
 
-/** Rejects if the engine cannot load or read within the limit (slow network, missing assets). */
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return Promise.race([p, new Promise<T>((_, reject) => setTimeout(() => reject(new Error('OCR timed out')), ms))]);
 }
@@ -48,11 +42,8 @@ export async function recognizeCard(card: HTMLCanvasElement, timeoutMs = 60_000)
     workerPromise = null;
     throw err;
   });
-  // Evaluation showed raw frames read better than contrast/inverted ones (scripts/ocr-eval), and
-  // enlarging small crops lost words ("DEBIT") in testing, so the frame is read as captured.
   try {
     const { data } = await withTimeout(worker.recognize(card, {}, { text: true, blocks: true }), timeoutMs);
-    // Boxes are in the recognised image's pixels; normalise by that same image.
     const W = card.width;
     const H = card.height;
     const words: WordBox[] = [];
@@ -66,7 +57,6 @@ export async function recognizeCard(card: HTMLCanvasElement, timeoutMs = 60_000)
     return { lines: data.text.split('\n'), words };
   } finally {
     if (idleTimer) clearTimeout(idleTimer);
-    // Free the worker's memory if no further scans happen soon.
     idleTimer = setTimeout(() => {
       void workerPromise?.then((w) => w.terminate());
       workerPromise = null;

@@ -1,8 +1,3 @@
-/**
- * Variant C — Vertical Carousel. Native vertical scrolling with snap-to-centre; the centred card is
- * in focus and the neighbours peek above and below, scaled and dimmed by scroll position
- * (transform/opacity only, driven by motion values — no re-render per frame).
- */
 import { m, useMotionValueEvent, useScroll, useTransform, type MotionValue } from 'motion/react';
 import { useEffect, useRef } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -31,11 +26,9 @@ export function CarouselWallet({ cards, state, onEdit }: { cards: PaymentCard[];
   const n = cards.length;
   const current = Math.max(0, cards.findIndex((c) => c.id === wallet.selectedId));
   const lastSettled = useRef(current);
-  /** Target of a scroll we started ourselves; user-driven selection is ignored until we arrive. */
   const programmatic = useRef<number | null>(null);
   const mounted = useRef(false);
 
-  // Keep the selected card centred (selection may change from another variant or a new card).
   useEffect(() => {
     const el = scroller.current;
     if (!el) return;
@@ -48,7 +41,6 @@ export function CarouselWallet({ cards, state, onEdit }: { cards: PaymentCard[];
     mounted.current = true;
   }, [current, step, reduced]);
 
-  // When the user's scroll settles on a new card, select it (without expanding).
   useMotionValueEvent(scrollY, 'change', (y) => {
     if (programmatic.current !== null) {
       if (Math.abs(y - programmatic.current) < 2) programmatic.current = null;

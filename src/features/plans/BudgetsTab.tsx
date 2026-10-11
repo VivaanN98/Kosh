@@ -154,7 +154,6 @@ function OverallCard({ status: s, onEdit }: { status: BudgetStatus; onEdit: () =
   );
 }
 
-/** Six-month comparison of overall spending against the budget (derived from the ledger). */
 function MonthlyComparison({ budget, month }: { budget: Budget; month: string }) {
   const snap = useSnapshot();
   const rows = useMemo(

@@ -1,7 +1,3 @@
-/**
- * The glass surface has a solid fallback for every case: no backdrop-filter support, the OS
- * "reduce transparency" setting, and the in-app toggle. (E2E covers the toggle at runtime.)
- */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';

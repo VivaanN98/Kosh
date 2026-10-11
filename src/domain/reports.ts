@@ -1,9 +1,4 @@
-/**
- * Reports, all derived from ledger entries. Each number here reconciles with metrics.ts
- * (tests/unit/reports.test.ts asserts that).
- */
 import {
-  addDays,
   diffDays,
   monthEnd,
   monthKey,
@@ -17,12 +12,11 @@ import { ratioBps, type Paise } from '@/lib/money';
 import type { Account, LedgerEntry, Uuid } from './types';
 import { totalIncome, totalSpending, type SystemIds } from './ledger/metrics';
 
-export interface MonthSummary {
+interface MonthSummary {
   month: MonthKey;
   income: Paise;
   spending: Paise;
   net: Paise;
-  /** (income − spending) / income in bps; null when there was no income. */
   savingsRateBps: number | null;
 }
 
@@ -39,18 +33,13 @@ export function monthlySeries(entries: readonly LedgerEntry[], sys: SystemIds, f
   return monthsBetween(from, to).map((m) => monthSummary(entries, sys, m));
 }
 
-export interface CashFlowMonth {
+interface CashFlowMonth {
   month: MonthKey;
   inflow: Paise;
   outflow: Paise;
   net: Paise;
 }
 
-/**
- * Cash flow of liquid accounts (cash + bank): money in and out, excluding moves between two
- * liquid accounts and equity postings (opening balances, reconciliation adjustments), which are
- * bookkeeping, not flows. Card payments are outflows; card purchases are not.
- */
 export function cashFlow(
   entries: readonly LedgerEntry[],
   accounts: readonly Account[],
@@ -68,8 +57,8 @@ export function cashFlow(
   const months = new Map(monthsBetween(from, to).map((m) => [m, { month: m, inflow: 0, outflow: 0, net: 0 }]));
   for (const list of byTx.values()) {
     const liquidSide = list.filter((e) => liquid.has(e.accountId));
-    if (liquidSide.length === 0 || liquidSide.length === list.length) continue; // none, or internal move
-    if (equityAccountId && list.some((e) => e.accountId === equityAccountId)) continue; // bookkeeping
+    if (liquidSide.length === 0 || liquidSide.length === list.length) continue;
+    if (equityAccountId && list.some((e) => e.accountId === equityAccountId)) continue;
     for (const e of liquidSide) {
       const row = months.get(monthKey(e.occurredOn));
       if (!row) continue;
@@ -80,7 +69,6 @@ export function cashFlow(
   return [...months.values()].map((r) => ({ ...r, net: r.inflow - r.outflow }));
 }
 
-/** Cumulative spending by day of month, for "this month vs last month" trend lines. */
 export function cumulativeDailySpending(
   entries: readonly LedgerEntry[],
   sys: SystemIds,
@@ -97,15 +85,4 @@ export function cumulativeDailySpending(
   }
   let running = 0;
   return daily.map((d) => (running += d));
-}
-
-/** Average daily spend so far this month and a straight-line projection to month end. */
-export function spendingPace(entries: readonly LedgerEntry[], sys: SystemIds, today: IsoDate) {
-  const month = monthKey(today);
-  const start = monthStart(month);
-  const spent = totalSpending(entries, sys, start, today);
-  const elapsed = diffDays(today, start) + 1;
-  const total = diffDays(monthEnd(month), start) + 1;
-  const projected = elapsed > 0 ? Math.round((spent * total) / elapsed) : 0;
-  return { spent, elapsed, total, projected, daysLeft: diffDays(addDays(monthEnd(month), 1), today) - 1 };
 }

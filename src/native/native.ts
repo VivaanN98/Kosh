@@ -1,16 +1,6 @@
-/**
- * Android app (Capacitor) integration. Loaded only inside the native shell; the web build never
- * downloads it.
- * - Hardware back: closes the open sheet first, then goes back, then leaves the app.
- * - System bars follow the app theme.
- */
 import { Capacitor, SystemBars, SystemBarsStyle } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { effectiveTheme } from '@/lib/preferences';
-
-export function isNativeApp(): boolean {
-  return Capacitor.isNativePlatform();
-}
 
 export function initNative() {
   if (!Capacitor.isNativePlatform()) return;
@@ -26,7 +16,6 @@ export function initNative() {
   });
 
   const applyBars = () => {
-    // DARK style = light icons, for the dark theme (and vice versa).
     void SystemBars.setStyle({ style: effectiveTheme() === 'dark' ? SystemBarsStyle.Dark : SystemBarsStyle.Light });
   };
   applyBars();

@@ -1,8 +1,3 @@
-/**
- * Scanned card faces: the card's real design with the number, expiry, CVV and name removed
- * (see domain/cards/faceMask.ts). Kept ONLY in this browser's IndexedDB, keyed by card id. They are
- * never written to Supabase or sent anywhere, so another device shows the colour template instead.
- */
 import { useEffect, useSyncExternalStore } from 'react';
 import type { IDBPDatabase } from 'idb';
 
@@ -20,7 +15,6 @@ function db(): Promise<IDBPDatabase> {
   return dbPromise;
 }
 
-/** Object URL per card id; null = known to have no face. Missing = not loaded yet. */
 const urls = new Map<string, string | null>();
 const loading = new Set<string>();
 const listeners = new Set<() => void>();
@@ -39,7 +33,7 @@ function load(id: string) {
   db()
     .then((d) => d.get(STORE, id) as Promise<Blob | undefined>)
     .then((blob) => setUrl(id, blob ?? null))
-    .catch(() => setUrl(id, null)) // storage blocked: the template is shown
+    .catch(() => setUrl(id, null))
     .finally(() => loading.delete(id));
 }
 
@@ -63,7 +57,6 @@ const subscribe = (l: () => void) => {
   return () => listeners.delete(l);
 };
 
-/** The stored face for a card as an image URL, or null (none, or not loaded yet). */
 export function useCardFace(id: string | undefined): string | null {
   const url = useSyncExternalStore(subscribe, () => (id ? (urls.get(id) ?? null) : null));
   useEffect(() => {

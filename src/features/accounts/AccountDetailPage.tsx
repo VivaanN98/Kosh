@@ -52,7 +52,6 @@ function AccountDetail({ account: a }: { account: Account }) {
   const isCard = a.kind === 'credit_card';
   const bal = d.balances.get(a.id) ?? 0;
 
-  // History with the running balance after each transaction (from this account's ledger entries).
   const history = useMemo(() => {
     const txById = new Map(snap.transactions.map((t) => [t.id, t]));
     const mine = snap.entries

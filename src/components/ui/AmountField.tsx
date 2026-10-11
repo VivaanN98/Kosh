@@ -1,9 +1,5 @@
 import { forwardRef, type InputHTMLAttributes } from 'react';
 
-/**
- * Text input for rupee amounts. Always a string in the form; convert with parseRupees() at submit.
- * inputMode="decimal" brings up the numeric keyboard on phones.
- */
 export const AmountField = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; hint?: string }>(
   function AmountField({ label, error, hint, id, className = '', ...rest }, ref) {
     const fid = id ?? `amt-${label.replace(/\W+/g, '-').toLowerCase()}`;

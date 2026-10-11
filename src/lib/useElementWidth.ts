@@ -1,6 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 
-/** Measured content width of an element (ResizeObserver). */
 export function useElementWidth<T extends HTMLElement>(fallback = 340) {
   const ref = useRef<T>(null);
   const [width, setWidth] = useState(fallback);

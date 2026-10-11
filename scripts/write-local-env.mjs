@@ -1,5 +1,3 @@
-// Writes .env.local from the running local Supabase stack (`npm run db:start` first).
-// Local keys are the CLI's fixed development keys; .env.local is gitignored anyway.
 import { execSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 

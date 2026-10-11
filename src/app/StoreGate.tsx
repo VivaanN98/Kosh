@@ -4,14 +4,11 @@ import { useSnapshot, useStore } from '@/data/hooks';
 import { Button } from '@/components/ui/Button';
 import { RouteSkeleton } from '@/components/layout/RouteSkeleton';
 
-/** Shows a layout-matched skeleton while the ledger loads, and a calm retry on failure. */
 export function StoreGate({ children }: { children: ReactNode }) {
   const snap = useSnapshot();
   const store = useStore();
   const ready = snap.status === 'ready';
 
-  // Due recurring items and statement closings are processed on load and whenever the app comes
-  // back to the foreground (at most every 5 minutes). The server makes this idempotent.
   useEffect(() => {
     if (!ready) return;
     let last = Date.now();

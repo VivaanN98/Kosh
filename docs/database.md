@@ -58,10 +58,13 @@ Errors are raised as `KOSH:<CODE>: message` and mapped to typed errors in the cl
 
 ## Seeding
 
-Each new user gets the system accounts, the default categories, **SBI Savings** and **Indian Bank
-Savings**, and the two cards (SBI Global International Visa Debit, Indian Bank Debit Platinum RuPay).
-No numbers or expiry dates are seeded. Seeding runs once per user (`profiles.seed_version`), so a card
-you delete is not re-created.
+Each new user gets the hidden system accounts and the default categories, and nothing else: no bank
+accounts and no cards. They add their own (Home and Accounts guide a first-time user to it, and a debit
+card can create its bank account as it is saved). Seeding runs once per user (`profiles.seed_version`).
+
+`private.seed_user()` is mirrored in `src/domain/seed.ts` for Demo Mode. Migration
+`20261011000001_no_default_accounts.sql` redefines it without the two example accounts and cards that
+earlier versions created; users who signed up before it keep what they already have.
 
 ## CSV export
 

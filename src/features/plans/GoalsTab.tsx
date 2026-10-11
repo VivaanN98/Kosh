@@ -17,7 +17,7 @@ import type { GoalContribution, GoalMode, SavingsGoal } from '@/domain/types';
 
 const GOAL_COLORS = ['#2fa47a', '#6c78d8', '#3e9cbf', '#d8913f', '#c3659a', '#9a8f7c'];
 
-export function requiredPerMonth(remaining: Paise, today: string, deadline: string | null): Paise | null {
+function requiredPerMonth(remaining: Paise, today: string, deadline: string | null): Paise | null {
   if (!deadline || remaining <= 0) return null;
   const days = diffDays(deadline, today);
   if (days <= 0) return remaining;
@@ -186,7 +186,7 @@ function GoalFormSheet({ goal, onClose }: { goal?: SavingsGoal; onClose: () => v
             ))}
           </SelectField>
         )}
-        <div role="radiogroup" aria-label="Colour" className="flex gap-2">
+        <div role="radiogroup" aria-label="Colour" className="flex max-w-[340px] justify-between">
           {GOAL_COLORS.map((c) => (
             <button key={c} type="button" role="radio" aria-checked={color === c} aria-label={`Colour ${c}`} onClick={() => setColor(c)} className="tap inline-flex items-center justify-center">
               <span className={`h-7 w-7 rounded-full ${color === c ? 'ring-2 ring-[var(--text)] ring-offset-2 ring-offset-[var(--surface)]' : ''}`} style={{ background: c }} />

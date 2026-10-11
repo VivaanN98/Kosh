@@ -14,7 +14,6 @@ export function user(): E2EUser {
   return JSON.parse(readFileSync('e2e/.artifacts/user.json', 'utf8')) as E2EUser;
 }
 
-/** Service-role client for asserting what is actually stored in the database. */
 export function admin() {
   const u = user();
   return createClient(u.url, u.key, { auth: { persistSession: false } });
@@ -29,7 +28,6 @@ export async function signIn(page: Page) {
   await expect(page.getByText('Net worth').first()).toBeVisible({ timeout: 20_000 });
 }
 
-/** Parse "₹2,93,426.50" → paise. */
 export function paiseFrom(text: string): number {
   const negative = /[−-]/.test(text);
   const clean = text.replace(/[^\d.]/g, '');

@@ -13,13 +13,11 @@ import { getReducedTransparency, getTheme, setReducedTransparency, setTheme, typ
 import { toKoshError } from '@/domain/errors';
 import type { CategoryKind } from '@/domain/types';
 
-// The wallet variants (and their motion features) load only when Settings is opened.
 const CardStyleSection = lazy(() => import('./CardStyleSection'));
 
 export default function SettingsPage() {
   const { mode, userEmail, signOut } = useBackend();
   const location = useLocation();
-  // Deep link: /settings#card-style scrolls to the card style picker.
   useEffect(() => {
     if (!location.hash) return;
     const t = setTimeout(() => document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: 'start' }), 300);
@@ -140,7 +138,6 @@ export default function SettingsPage() {
           </div>
         </div>
       </Section>
-
 
       <Button variant="danger" icon={<LogOut size={16} />} onClick={() => void signOut()} data-testid="sign-out">
         {mode === 'demo' ? 'Leave Demo Mode' : 'Sign out'}

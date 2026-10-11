@@ -80,7 +80,6 @@ export default function ActivityPage() {
     return { out, inn };
   }, [filtered]);
 
-  // Render more as the user nears the end (keeps long histories smooth).
   const sentinel = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = sentinel.current;

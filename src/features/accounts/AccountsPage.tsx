@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { AnimatePresence, m } from 'motion/react';
 import { Page, PageHeader, Section } from '@/components/ui/bits';
@@ -26,7 +26,13 @@ const GROUPS: { kind: Account['kind']; title: string }[] = [
 export default function AccountsPage() {
   const snap = useSnapshot();
   const d = useDerived();
+  const [params, setParams] = useSearchParams();
   const [adding, setAdding] = useState(false);
+  const wantsNew = params.get('new') === '1';
+  const closeForm = () => {
+    setAdding(false);
+    if (wantsNew) setParams({}, { replace: true });
+  };
   const [showArchived, setShowArchived] = useState(false);
   const archived = snap.accounts.filter((a) => a.archivedAt);
 
@@ -103,7 +109,7 @@ export default function AccountsPage() {
         </section>
       )}
 
-      <AccountFormSheet open={adding} onClose={() => setAdding(false)} />
+      <AccountFormSheet open={adding || wantsNew} onClose={closeForm} />
     </Page>
   );
 }
@@ -119,7 +125,6 @@ function AccountRow({ account: a }: { account: Account }) {
     return st ? statementStatus(st, paidSince(snap.entries, snap.transactions, a.id, st.periodEnd)) : null;
   }, [isCard, snap.statements, snap.entries, snap.transactions, a.id]);
   const goal = a.kind === 'goal' ? snap.goals.find((g) => g.accountId === a.id) : undefined;
-  // A bank/cash account at zero or below usually just hasn't been given its starting balance yet.
   const needsBalance = !a.archivedAt && (a.kind === 'bank' || a.kind === 'cash') && bal <= 0;
   const subtitle = isCard
     ? due && !due.isPaid

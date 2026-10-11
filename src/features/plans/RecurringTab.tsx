@@ -78,7 +78,7 @@ export default function RecurringTab() {
   );
 }
 
-export function PendingList() {
+function PendingList() {
   const snap = useSnapshot();
   const d = useDerived();
   const store = useStore();
@@ -138,7 +138,7 @@ export function PendingList() {
   );
 }
 
-export function RuleRow({ rule: r, onEdit }: { rule: RecurringRule; onEdit: () => void }) {
+function RuleRow({ rule: r, onEdit }: { rule: RecurringRule; onEdit: () => void }) {
   const d = useDerived();
   const store = useStore();
   const toast = useToast();

@@ -14,7 +14,6 @@ type Tab = (typeof TABS)[number];
 export default function PlansPage() {
   const { tab: raw } = useParams();
   const navigate = useNavigate();
-  // Subscriptions used to be their own tab; old links land on Recurring, where they now live.
   const key = raw === 'subscriptions' ? 'recurring' : raw;
   const tab: Tab = (TABS as readonly string[]).includes(key ?? '') ? (key as Tab) : 'budgets';
   return (

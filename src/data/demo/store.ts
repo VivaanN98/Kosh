@@ -1,13 +1,6 @@
-/**
- * Demo Mode storage: an in-memory copy of every table, persisted to IndexedDB.
- *
- * Writes are atomic: `mutate(fn)` runs `fn` against a staging overlay, then commits every staged
- * change in ONE IndexedDB readwrite transaction before touching memory. If `fn` throws or the
- * IndexedDB commit fails, nothing changes. Mutations are serialised through a queue.
- */
 import { openDB, type IDBPDatabase } from 'idb';
 
-export const TABLES = [
+const TABLES = [
   'accounts',
   'transactions',
   'entries',
@@ -76,7 +69,6 @@ export class DemoStore {
 
   private constructor(private readonly db: IDBPDatabase | null) {}
 
-  /** Open (or create) the IndexedDB database and load it into memory. */
   static async open(name = 'kosh-demo'): Promise<DemoStore> {
     const db = await openDB(name, DB_VERSION, {
       upgrade(database) {
@@ -95,7 +87,6 @@ export class DemoStore {
     return store;
   }
 
-  /** Memory-only store (tests that do not need persistence). */
   static memory(): DemoStore {
     return new DemoStore(null);
   }
@@ -109,7 +100,6 @@ export class DemoStore {
     return [...this.tables[table].values()].map((r) => structuredClone(r) as T);
   }
 
-  /** Run a synchronous unit of work atomically. Returns what `fn` returns (deep-cloned). */
   mutate<T>(fn: (w: Writer) => T): Promise<T> {
     const run = async (): Promise<T> => {
       const w = new Writer(this.tables);
@@ -125,7 +115,7 @@ export class DemoStore {
               else void os.delete(id);
             }
           }
-          await tx.done; // throws → memory untouched, the whole unit is rolled back
+          await tx.done;
         }
         for (const [table, rows] of w.staged) {
           for (const [id, row] of rows) {

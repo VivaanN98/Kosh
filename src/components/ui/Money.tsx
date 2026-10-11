@@ -9,7 +9,6 @@ const toneClass: Record<Exclude<Tone, 'auto'>, string> = {
   muted: 'text-text-2',
 };
 
-/** Inline money amount. `signed` shows +/− (for transaction rows). */
 export function Money({
   amount,
   tone = 'neutral',
@@ -28,7 +27,6 @@ export function Money({
   return <span className={`num ${toneClass[resolved]} ${className}`}>{text}</span>;
 }
 
-/** Hero amount: large rupees, small dimmed symbol and paise. */
 export function BigMoney({ amount, className = '', size = 'xl', hidePaise = false }: { amount: Paise; className?: string; size?: 'lg' | 'xl' | '2xl'; hidePaise?: boolean }) {
   const p = splitParts(amount);
   const sizes = {

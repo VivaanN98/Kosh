@@ -46,16 +46,11 @@ export function Section({ title, action, children, className = '' }: { title?: R
   );
 }
 
-/** -1 / 0 / 1: which side the incoming tab sits on, so content drifts in from that direction. */
 export const EnterDirection = createContext(0);
 
 let painted = false;
 
-/**
- * Motion's animation features load only after the first page paints (bundle size). Anything on that
- * first screen must therefore render in its final state rather than wait for an entrance animation.
- */
-export function useIsFirstPaint(): boolean {
+function useIsFirstPaint(): boolean {
   return useState(() => !painted)[0];
 }
 
@@ -65,15 +60,9 @@ export function signalPainted() {
   requestAnimationFrame(() => setTimeout(() => window.dispatchEvent(new Event('kosh:painted')), 0));
 }
 
-/**
- * Route content enters as a quick cascade: each top-level block rises into place a beat after the one
- * above it, drifting in from the side the tab sits on. CSS only (`.page-enter`, transform + opacity),
- * so it costs no JavaScript and respects reduced motion there.
- */
 export function Page({ children, className = '' }: { children: ReactNode; className?: string }) {
   const first = useIsFirstPaint();
   const dx = useContext(EnterDirection);
-  // The first real page on screen releases deferred loaders (motion features, preloads).
   useEffect(() => signalPainted(), []);
   return (
     <main
@@ -93,7 +82,7 @@ export const TextField = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLIn
   function TextField({ label, hint, error, id, className = '', ...rest }, ref) {
     const fid = id ?? `f-${label.replace(/\W+/g, '-').toLowerCase()}`;
     return (
-      <label htmlFor={fid} className={`block ${className}`}>
+      <label htmlFor={fid} className={`block min-w-0 ${className}`}>
         <span className="mb-1.5 block text-[13px] font-medium text-text-2">{label}</span>
         <input ref={ref} id={fid} className={fieldBase} aria-invalid={error ? true : undefined} aria-describedby={error || hint ? `${fid}-msg` : undefined} {...rest} />
         {(error || hint) && (
@@ -110,7 +99,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HT
   function SelectField({ label, error, id, className = '', children, ...rest }, ref) {
     const fid = id ?? `s-${label.replace(/\W+/g, '-').toLowerCase()}`;
     return (
-      <label htmlFor={fid} className={`block ${className}`}>
+      <label htmlFor={fid} className={`block min-w-0 ${className}`}>
         <span className="mb-1.5 block text-[13px] font-medium text-text-2">{label}</span>
         <span className="relative block">
           <select ref={ref} id={fid} className={`${fieldBase} appearance-none pr-10`} aria-invalid={error ? true : undefined} {...rest}>
@@ -124,7 +113,6 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HT
   },
 );
 
-/** Thin progress bar (scaleX transform — never animates width). */
 export function Progress({ value, tone = 'mint', label }: { value: number; tone?: 'mint' | 'warning' | 'negative' | 'peri'; label: string }) {
   const clamped = Math.max(0, Math.min(1, value));
   const color = { mint: 'var(--mint)', warning: 'var(--warning)', negative: 'var(--negative)', peri: 'var(--peri)' }[tone];

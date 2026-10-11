@@ -1,5 +1,3 @@
-// Copies the on-device OCR engine (tesseract.js worker, WASM core, English model) into public/ocr so
-// the app serves it from its own origin — no third-party CDN is contacted when scanning.
 import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 

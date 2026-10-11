@@ -19,7 +19,7 @@ const sizes: Record<Size, string> = {
   lg: 'h-14 px-6 text-[16px] rounded-[16px] gap-2',
 };
 
-export interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
+interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
   variant?: Variant;
   size?: Size;
   icon?: ReactNode;

@@ -5,8 +5,6 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath, URL } from 'node:url';
 
-// Local Supabase is proxied through the dev server at /sb so a phone on the Cloudflare tunnel
-// (https) can reach it same-origin, without mixed content or exposing port 54321.
 const SUPABASE_LOCAL = process.env.SUPABASE_PROXY_TARGET ?? 'http://127.0.0.1:54321';
 const supabaseProxy = {
   '/sb': {
@@ -22,7 +20,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'prompt',
-      injectRegister: false, // registered from src/pwa.ts (skipped inside the Android app)
+      injectRegister: false,
       includeAssets: ['icon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
         name: 'Kosh — money, in focus',
@@ -50,7 +48,6 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/sb\//, /^\/ocr\//],
         runtimeCaching: [
           {
-            // The on-device OCR engine (~7 MB) is cached the first time Scan is used.
             urlPattern: ({ url }) => url.pathname.startsWith('/ocr/'),
             handler: 'CacheFirst',
             options: { cacheName: 'kosh-ocr', expiration: { maxEntries: 12 } },
@@ -60,13 +57,11 @@ export default defineConfig({
             handler: 'StaleWhileRevalidate',
             options: { cacheName: 'kosh-fonts', expiration: { maxEntries: 20 } },
           },
-          // Supabase API calls are never cached: money data always comes from the server.
         ],
       },
       devOptions: { enabled: false },
     }),
   ],
-  // Only the app entry is scanned for dependencies (scripts/ocr-eval has its own optional engines).
   optimizeDeps: { entries: ['index.html'] },
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
@@ -74,7 +69,6 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
-    // Cloudflare quick tunnels (npm run dev:phone) use random *.trycloudflare.com hosts.
     allowedHosts: ['.trycloudflare.com'],
     proxy: supabaseProxy,
   },
@@ -109,7 +103,6 @@ export default defineConfig({
           environment: 'node',
           globals: true,
           include: ['tests/db/**/*.test.ts'],
-          // Server-side test credentials (service role) from .env.local — never exposed to the browser.
           env: loadEnv('test', process.cwd(), ''),
           testTimeout: 30_000,
           hookTimeout: 60_000,

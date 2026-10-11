@@ -1,12 +1,9 @@
-/**
- * Toasts with optional Undo. Destructive actions use an undo toast instead of a confirm dialog.
- */
 import { AnimatePresence, m } from 'motion/react';
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import { CircleAlert, CircleCheck } from 'lucide-react';
 import { springs } from '@/motion/springs';
 
-export interface ToastOptions {
+interface ToastOptions {
   message: string;
   tone?: 'default' | 'error' | 'success';
   action?: { label: string; onClick: () => unknown };

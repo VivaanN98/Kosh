@@ -1,14 +1,9 @@
-/**
- * Card scanning: camera permission timing, every failure path, and the full on-device OCR path
- * with a synthetic FICTIONAL card streamed as the camera. Asserts nothing sensitive is persisted.
- */
 import { expect, test, type Page } from '@playwright/test';
 import { admin, signIn, user } from './helpers';
 import type { recognizeCard as RecognizeCard } from '../src/features/cards/scan/ocrEngine';
 
 type CameraMode = 'allow' | 'deny' | 'unsupported' | 'blurry' | 'blank';
 
-/** Replace getUserMedia before the app loads; count calls; stream a drawn card for 'allow'. */
 async function fakeCamera(page: Page, mode: CameraMode) {
   await page.addInitScript((m: CameraMode) => {
     const w = window as unknown as { __gumCalls: number };
@@ -18,8 +13,6 @@ async function fakeCamera(page: Page, mode: CameraMode) {
       return;
     }
     const draw = (blur: boolean, blank: boolean) => {
-      // 1080p "camera". The card is centred and sized like a user filling the on-screen guide
-      // (the preview is 3:4 portrait with object-fit: cover, the guide is 86% of its width).
       const W = 1920;
       const H = 1080;
       const c = document.createElement('canvas');
@@ -30,7 +23,7 @@ async function fakeCamera(page: Page, mode: CameraMode) {
       const ch = Math.round(cw / 1.586);
       const ox = Math.round((W - cw) / 2);
       const oy = Math.round((H - ch) / 2);
-      const u = cw / 1000; // design units
+      const u = cw / 1000;
       const paint = () => {
         x.filter = 'none';
         x.fillStyle = '#3d362f';
@@ -42,7 +35,6 @@ async function fakeCamera(page: Page, mode: CameraMode) {
         x.fillStyle = g;
         x.fillRect(ox, oy, cw, ch);
         if (blank) {
-          // Sharp, textless artwork: passes the blur check, gives OCR nothing to read.
           x.fillStyle = 'rgba(255,255,255,0.8)';
           for (let sx = ox; sx < ox + cw; sx += 24 * u) x.fillRect(sx, oy, 8 * u, ch);
           return;
@@ -58,7 +50,7 @@ async function fakeCamera(page: Page, mode: CameraMode) {
         x.fillRect(ox + 70 * u, oy + 210 * u, 110 * u, 82 * u);
         x.fillStyle = '#ffffff';
         x.font = `bold ${60 * u}px "Courier New", monospace`;
-        x.fillText('4000  1234  5678  9017', ox + 60 * u, oy + 400 * u); // fictional test number
+        x.fillText('4000  1234  5678  9017', ox + 60 * u, oy + 400 * u);
         x.font = `italic 900 ${80 * u}px Arial`;
         x.fillText('VISA', ox + 730 * u, oy + 590 * u);
       };
@@ -162,26 +154,22 @@ test('full scan: on-device OCR → editable review → saved without sensitive d
   await page.getByTestId('scan-capture').click();
   await expect(page.getByTestId('scan-review-note')).toBeVisible({ timeout: 45_000 });
   const form = page.getByTestId('card-form');
-  // Recognised fields are pre-filled and every one is editable.
   await expect(form.getByTestId('card-issuer')).toHaveValue('State Bank of India');
   await expect(form.getByTestId('card-network')).toHaveValue('visa');
   await expect(form.getByTestId('card-last4')).toHaveValue('9017');
   await form.getByTestId('card-issuer').fill('State Bank of India');
   await form.getByLabel('Name on the card face (optional)').fill('Scanned Global');
-  await form.getByTestId('card-account').selectOption({ label: 'SBI Savings' });
+  await form.getByTestId('card-account').selectOption({ label: 'Test Savings' });
   await form.getByTestId('save-card').click();
   await expect(page.getByTestId('add-card-sheet')).toBeHidden();
   await expect(page.getByLabel(/Scanned Global, visa debit ending 9017/).first()).toBeVisible();
-  // The card shows its real design (number, expiry and name removed), not the colour template.
   await expect(page.getByTestId('card-face-photo').first()).toBeVisible();
 
-  // Database: only sanitized fields; no full number anywhere.
   const { data } = await admin().from('payment_cards').select('*').eq('user_id', user().id).eq('display_name', 'Scanned Global');
   expect(data).toHaveLength(1);
   expect(data![0]!.source).toBe('scan');
   expect(JSON.stringify(data)).not.toContain('4000123456789017');
   expect(JSON.stringify(data).replace(/[\s-]/g, '')).not.toMatch(/\d{12,}/);
-  // Browser storage: the number is nowhere; the only picture is the cleaned face, on this device.
   const local = await page.evaluate(() => JSON.stringify({ ...localStorage }));
   expect(local.replace(/[\s-]/g, '')).not.toMatch(/4000123456789017|data:image/);
   const faceText = await page.evaluate(async () => {
@@ -199,15 +187,15 @@ test('full scan: on-device OCR → editable review → saved without sensitive d
     c.width = bmp.width;
     c.height = bmp.height;
     c.getContext('2d')!.drawImage(bmp, 0, 0);
-    const engine = '/src/features/cards/scan/ocrEngine.ts'; // served by Vite in the page
+    const engine = '/src/features/cards/scan/ocrEngine.ts';
     const { recognizeCard } = (await import(/* @vite-ignore */ engine)) as { recognizeCard: typeof RecognizeCard };
     return (await recognizeCard(c)).lines.join(' ');
   });
-  expect(faceText).toMatch(/STATE BANK/); // the design is kept…
-  expect(faceText).not.toMatch(/\d/); // …with every digit removed
+  expect(faceText).toMatch(/STATE BANK/);
+  expect(faceText).not.toMatch(/\d/);
   const idb = await page.evaluate(async () => {
     const dbs = (await indexedDB.databases?.()) ?? [];
     return dbs.map((d) => d.name).join(',');
   });
-  expect(idb).not.toContain('kosh-demo'); // Supabase mode never touches the Demo store
+  expect(idb).not.toContain('kosh-demo');
 });

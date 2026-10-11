@@ -12,7 +12,6 @@ import { NETWORK_LABEL } from '@/domain/cards/artwork';
 import type { PaymentCard } from '@/domain/types';
 import { useWallet } from './WalletContext';
 
-/** Details for the expanded card. The balance shown is the LINKED ACCOUNT's — cards hold none. */
 export function CardDetails({ card, onEdit }: { card: PaymentCard; onEdit: (c: PaymentCard) => void }) {
   const snap = useSnapshot();
   const d = useDerived();

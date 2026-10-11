@@ -8,10 +8,9 @@ import type { PaymentCard } from '@/domain/types';
 import { CardForm, type CardDraft } from './CardForm';
 import { useWallet } from './WalletContext';
 
-// The camera/OCR flow (and its OCR engine) loads only after the user explicitly chooses Scan.
 const ScanFlow = lazy(() => import('./scan/ScanFlow'));
 
-export const EMPTY_DRAFT: CardDraft = {
+const EMPTY_DRAFT: CardDraft = {
   issuer: '',
   network: 'visa',
   cardType: 'debit',
@@ -21,10 +20,6 @@ export const EMPTY_DRAFT: CardDraft = {
   artwork: { ...DEFAULT_ARTWORK },
 };
 
-/**
- * Add Card: choose Scan or Enter Manually. Manual entry is always one tap away, and every scan
- * failure path lands on the manual form with a message.
- */
 export function AddCardSheet({ editing, onEditDone }: { editing?: PaymentCard | null; onEditDone?: () => void }) {
   const wallet = useWallet();
   const toast = useToast();

@@ -1,7 +1,6 @@
 @import 'tailwindcss';
 @import './tokens.css';
 
-/* Theme mapping: Tailwind utilities resolve to tokens (bg-surface, text-text-2, border-line…). */
 @theme inline {
   --color-bg: var(--bg);
   --color-bg-elevated: var(--bg-elevated);
@@ -43,10 +42,8 @@
     -webkit-tap-highlight-color: transparent;
     background: var(--bg);
     overscroll-behavior: none;
-    /* Taps fire immediately (no double-tap-zoom wait) and double-tap never zooms the UI. */
     touch-action: manipulation;
   }
-  /* Touch devices and the Android app: no scroll bars (they read as a website). Desktop keeps them. */
   @media (pointer: coarse) {
     html,
     * {
@@ -92,7 +89,6 @@
 }
 
 @layer components {
-  /* Numbers that represent money: tabular, slightly tight. */
   .num {
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum', 'ss01';
@@ -125,11 +121,6 @@
     box-shadow: inset 0 1px 0 var(--highlight), var(--shadow-1);
   }
 
-  /*
-   * Restrained liquid glass: nav, sheets and wallet cards only — never behind dense text.
-   * Falls back to an opaque surface when backdrop-filter is unsupported, when the user asks for
-   * reduced transparency (OS setting or in-app toggle).
-   */
   .glass {
     background: var(--glass-bg);
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -137,10 +128,6 @@
     border: 1px solid var(--glass-border);
     box-shadow: inset 0 1px 0 var(--highlight);
   }
-  /*
-   * Sheets hold dense content, so they are opaque: no backdrop blur to recompute every frame while
-   * a sheet slides (measured: 9 long frames → see docs/testing.md). Glass stays on nav and cards.
-   */
   .glass-strong {
     background: var(--glass-solid);
     -webkit-backdrop-filter: none;
@@ -164,7 +151,6 @@
     backdrop-filter: none;
   }
 
-  /* The floating tab pill sits over colourful tiles: mostly opaque so its labels stay legible. */
   .glass-bar {
     background: color-mix(in srgb, var(--glass-solid) 90%, transparent);
   }
@@ -191,7 +177,6 @@
     min-width: 44px;
   }
 
-  /* Keeps a compact control looking compact while its touch target stays 44px tall. */
   .hit-y {
     position: relative;
   }
@@ -216,7 +201,6 @@
     display: none;
   }
 
-  /* Ambient aurora behind the hero number. Static gradients — nothing animates on scroll. */
   .aurora {
     -webkit-mask-image: radial-gradient(75% 100% at 50% 0%, #000 35%, transparent 100%);
     mask-image: radial-gradient(75% 100% at 50% 0%, #000 35%, transparent 100%);
@@ -245,11 +229,6 @@
   }
 }
 
-/*
- * Route enter: a quick cascade. Each top-level block rises into place a beat after the one above and
- * drifts in from the side its tab sits on (--enter-x). Transform + opacity only; `backwards` fill, so
- * nothing keeps a transform (or a containing block for fixed children) once it has landed.
- */
 @keyframes page-rise {
   from {
     opacity: 0;
@@ -298,10 +277,6 @@
   }
 }
 
-/*
- * Touch devices: fields at 16px or larger. Below that, iOS Safari zooms the page on focus.
- * Unlayered on purpose, so it wins over the text-[15px] utilities.
- */
 @media (pointer: coarse) {
   input:not([type='range'], [type='checkbox'], [type='radio']),
   select,
@@ -310,7 +285,6 @@
   }
 }
 
-/* Theme switches ease instead of flashing (a hard dark↔light jump is a brightness jolt). */
 @media (prefers-reduced-motion: no-preference) {
   :root[data-theme-changing],
   :root[data-theme-changing] *,

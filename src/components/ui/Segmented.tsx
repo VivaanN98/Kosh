@@ -2,13 +2,12 @@ import { m } from 'motion/react';
 import { useId, type ReactNode } from 'react';
 import { springs } from '@/motion/springs';
 
-export interface SegmentedOption<T extends string> {
+interface SegmentedOption<T extends string> {
   value: T;
   label: ReactNode;
   testId?: string;
 }
 
-/** iOS-style segmented control. The selection pill moves with a shared layout animation. */
 export function Segmented<T extends string>({
   value,
   onChange,
@@ -26,7 +25,7 @@ export function Segmented<T extends string>({
 }) {
   const id = useId();
   return (
-    <div role="radiogroup" aria-label={label} className={`inline-flex rounded-[14px] bg-surface-2 p-1 ${className}`}>
+    <div role="radiogroup" aria-label={label} className={`inline-flex max-w-full rounded-[14px] bg-surface-2 p-1 ${className}`}>
       {options.map((o) => {
         const active = o.value === value;
         return (
@@ -48,8 +47,8 @@ export function Segmented<T extends string>({
               }
             }}
             tabIndex={active ? 0 : -1}
-            className={`relative flex-1 whitespace-nowrap rounded-[10px] font-medium transition-colors ${
-              size === 'sm' ? 'hit-y h-9 px-3 text-[13px]' : 'hit-y h-10 px-4 text-[14px]'
+            className={`relative min-w-0 flex-1 whitespace-nowrap rounded-[10px] font-medium transition-colors ${
+              size === 'sm' ? 'hit-y h-9 px-2.5 text-[13px] min-[380px]:px-3' : 'hit-y h-10 px-1.5 text-[13px] min-[380px]:px-4 min-[380px]:text-[14px]'
             } ${active ? 'text-text' : 'text-text-2 hover:text-text'}`}
           >
             {active && (
@@ -60,7 +59,7 @@ export function Segmented<T extends string>({
                 transition={springs.snappy}
               />
             )}
-            <span className="relative">{o.label}</span>
+            <span className="relative block truncate">{o.label}</span>
           </button>
         );
       })}

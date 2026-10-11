@@ -55,15 +55,12 @@
     database or localStorage
 - **Accessibility:** reduced motion, glass falling back to solid with reduced transparency, theme
   persistence, first screens visible without waiting on deferred animation code.
+- **Responsive:** at 320, 390 and 768px wide, no page or sheet (add, account, card new/edit, goal,
+  recurring) scrolls sideways or has controls poking outside it (`e2e/responsive.spec.ts`).
+- **First run:** a new user starts with no accounts or cards and can add both.
 - **Assistant:** setup state without a key.
 - **Visual pass:** `e2e/screenshots.spec.ts` writes Home, Add sheet, Accounts, Card style, Insights
   and Plans at mobile and desktop widths in both themes to `e2e/.artifacts/screens/`.
-
-## Latest results (2026-10-10)
-
-- Unit + DB: **119 tests passed**, 0 failed.
-- Playwright: **all specs passed** on the mobile (Pixel 7) and desktop projects. Tests that only
-  apply to one viewport are skipped on the other.
 
 ## Performance (production build, measured with Playwright)
 

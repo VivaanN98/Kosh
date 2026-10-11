@@ -1,17 +1,10 @@
-/**
- * A payment card rendered from its scanned face picture (number, expiry and name already removed,
- * stored on this device only) or, without one, from its sanitized artwork template. No numbers
- * beyond the optional last four. Used by every wallet variant and the Add Card preview.
- */
 import { memo, type CSSProperties } from 'react';
 import type { CardArtwork, CardNetwork, CardType } from '@/domain/types';
 import { useCardFace } from '@/data/cardFaces';
 import { NetworkMark } from './NetworkMark';
 
-export interface CardFaceData {
-  /** A saved card's id: its stored face picture is shown when this device has one. */
+interface CardFaceData {
   id?: string;
-  /** Explicit face picture URL (Add Card preview); null forces the template. */
   face?: string | null;
   issuer: string;
   displayName: string | null;
@@ -97,7 +90,6 @@ export const CardFace = memo(function CardFace({
   card: CardFaceData;
   className?: string;
   style?: CSSProperties;
-  /** Hide secondary text (stacked/peeking states). */
   compact?: boolean;
 }) {
   const stored = useCardFace(card.face === undefined ? card.id : undefined);

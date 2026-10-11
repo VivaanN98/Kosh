@@ -1,6 +1,3 @@
-// Starts the Vite dev server and a Cloudflare quick tunnel, then prints the https URL to open
-// on your phone. Camera access (card scanning) requires https, which the tunnel provides.
-// The tunnel is public while this runs; the app still requires sign-in (or runs Demo Mode).
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -38,7 +35,6 @@ tunnel.on('error', (err) => {
   );
 });
 
-// Without Vite the tunnel would forward to whatever else holds port 5173, so never outlive it.
 let stopping = false;
 vite.on('exit', (code) => {
   tunnel.kill();

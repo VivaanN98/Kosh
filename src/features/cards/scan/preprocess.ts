@@ -1,7 +1,3 @@
-/**
- * On-device image preparation for OCR. Works on a canvas the caller owns and wipes afterwards.
- * Grayscale → percentile contrast stretch → invert to dark text on light → (optional) upscale.
- */
 export function preprocessForOcr(source: HTMLCanvasElement, targetWidth = 1400): HTMLCanvasElement {
   const scale = targetWidth / source.width;
   const out = document.createElement('canvas');
@@ -27,7 +23,6 @@ export function preprocessForOcr(source: HTMLCanvasElement, targetWidth = 1400):
   const range = Math.max(1, hi - lo);
   let sum = 0;
   for (let j = 0; j < gray.length; j++) sum += gray[j]!;
-  // Card text is usually lighter than the card: invert so text ends up dark on light.
   const invert = sum / gray.length < 128;
   for (let i = 0, j = 0; i < d.length; i += 4, j++) {
     let v = ((gray[j]! - lo) * 255) / range;
@@ -38,12 +33,6 @@ export function preprocessForOcr(source: HTMLCanvasElement, targetWidth = 1400):
   return out;
 }
 
-/**
- * Blurriness in [0, 1] (higher = blurrier), after Crete et al., "The blur effect: perception and
- * estimation with a new no-reference perceptual blur metric" (2007). The image is re-blurred with a
- * 9-px box filter; a sharp image loses much of its neighbour-to-neighbour variation, a blurry one
- * hardly changes. Largely independent of how much is printed on the card or how bright it is.
- */
 export function blurriness(source: HTMLCanvasElement): number {
   const w = 320;
   const h = Math.round((source.height / source.width) * w);
@@ -89,7 +78,6 @@ export function blurriness(source: HTMLCanvasElement): number {
       sVv += Math.max(0, dFv - dBv);
     }
   }
-  // Weight each direction by how much detail it has (a striped card has none along the stripes).
   const total = sFh + sFv;
   return total > 0 ? (sFh - sVh + (sFv - sVv)) / total : 1;
 }

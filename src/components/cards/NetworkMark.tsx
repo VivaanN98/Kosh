@@ -1,6 +1,5 @@
 import type { CardNetwork } from '@/domain/types';
 
-/** Simplified network marks drawn in SVG (no external images). `tone` adapts text-only marks. */
 export function NetworkMark({ network, tone, height = 26 }: { network: CardNetwork; tone: 'light' | 'dark'; height?: number }) {
   const ink = tone === 'light' ? '#ffffff' : '#14161a';
   switch (network) {

@@ -48,7 +48,6 @@ export interface Derived {
   activeAccounts: Account[];
 }
 
-/** Every headline number on screen comes from here, i.e. from ledger entries. */
 export function useDerived(): Derived {
   const s = useSnapshot();
   const today = todayIST();

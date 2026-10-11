@@ -17,7 +17,6 @@ export function typeMatches(t: Transaction, f: TypeFilter): boolean {
   }
 }
 
-/** Case-insensitive match on merchant, note, category (and its parent), account names, or exact amount. */
 export function matchesQuery(t: Transaction, raw: string, d: Pick<Derived, 'accountById' | 'categoryById'>): boolean {
   const q = raw.trim().toLowerCase();
   if (!q) return true;

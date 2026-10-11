@@ -1,5 +1,4 @@
-/** Error codes shared by the TypeScript engine and the Postgres functions ("KOSH:<CODE>: msg"). */
-export const ERROR_CODES = [
+const ERROR_CODES = [
   'UNAUTHENTICATED',
   'SETUP_REQUIRED',
   'INVALID_INPUT',
@@ -73,7 +72,6 @@ export function fail(code: ErrorCode, message?: string): never {
 
 const PREFIX_RE = /KOSH:([A-Z_]+):\s*(.*)/s;
 
-/** Normalise anything thrown by an adapter (Postgres error, fetch failure…) into a KoshError. */
 export function toKoshError(err: unknown): KoshError {
   if (err instanceof KoshError) return err;
   const message =

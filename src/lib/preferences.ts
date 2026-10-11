@@ -1,4 +1,3 @@
-/** Per-device display preferences (not financial data). */
 export type ThemePref = 'system' | 'light' | 'dark';
 
 const THEME = 'kosh.theme';
@@ -16,7 +15,6 @@ function write(key: string, value: string | null) {
     if (value === null) localStorage.removeItem(key);
     else localStorage.setItem(key, value);
   } catch {
-    /* storage blocked: preference lasts for this page only */
   }
 }
 
@@ -27,7 +25,6 @@ export function getTheme(): ThemePref {
 
 export function setTheme(t: ThemePref) {
   write(THEME, t === 'system' ? null : t);
-  // Ease the colour change for a moment (see index.css); removed again so normal hovers stay instant.
   const root = document.documentElement;
   root.setAttribute('data-theme-changing', '');
   window.setTimeout(() => root.removeAttribute('data-theme-changing'), 300);
@@ -36,7 +33,6 @@ export function setTheme(t: ThemePref) {
   window.dispatchEvent(new Event('kosh:theme'));
 }
 
-/** The theme actually showing (resolves "system"). */
 export function effectiveTheme(): 'light' | 'dark' {
   const t = getTheme();
   if (t !== 'system') return t;

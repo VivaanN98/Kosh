@@ -6,12 +6,11 @@ import { formatRelativeDay } from '@/lib/dates';
 import type { Derived } from '@/data/hooks';
 import type { Transaction } from '@/domain/types';
 
-export interface TxView {
+interface TxView {
   title: string;
   subtitle: string;
   icon: string;
   color: string | null;
-  /** Signed effect for display: negative = money out, positive = money in, 0 = neutral move. */
   display: 'out' | 'in' | 'move';
 }
 

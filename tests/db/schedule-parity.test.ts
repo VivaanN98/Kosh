@@ -1,7 +1,3 @@
-/**
- * Cross-checks the SQL schedule predicate (private.is_scheduled) against the TypeScript one for
- * every day of 2024–2026 across tricky rules. Talks to Postgres through `docker exec psql`.
- */
 import { execFileSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import { isScheduled, type ScheduleRule } from '@/domain/recurring';

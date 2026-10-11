@@ -1,21 +1,10 @@
-/**
- * Removing the sensitive parts of a scanned card picture, so its real design can be kept as the
- * card's face. Pure: works on word boxes and raw RGBA pixels, no DOM.
- *
- * What is removed: every word containing a digit (number, expiry, CVV), the whole row across the
- * card wherever a 4-digit group was read (a long number whose other groups OCR missed), and
- * confidently read words in the lower half that are not the network mark (name, "VALID THRU").
- * Removed areas are filled from their surroundings so the card looks clean, not blacked out.
- */
 
 export interface FaceWord {
   text: string;
-  /** Normalised 0..1 box within the card image. */
   x0: number;
   y0: number;
   x1: number;
   y1: number;
-  /** OCR confidence 0..100, when known. */
   confidence?: number;
 }
 
@@ -30,15 +19,9 @@ const NETWORK_WORD = /VISA|MASTER|RUPAY|AMEX|AMERICAN|EXPRESS|DINERS|DISCOVER|JC
 const DATE_LIKE = /^\D*\d{1,2}\s*[/-]\s*\d{2,4}\D*$/;
 const clamp = (v: number) => Math.max(0, Math.min(1, v));
 
-/**
- * Zones that are removed on EVERY card face, whatever OCR found. Embossed or glare-covered numbers
- * are often unreadable to OCR, so masking only what was read could keep a full number in the
- * picture. On ISO/IEC 7810 ID-1 cards the number line sits in the middle band and the name and
- * expiry in the lower-left; the bank name (top) and network mark (lower-right) stay visible.
- */
 export const STANDARD_SENSITIVE_ZONES: readonly Rect[] = [
-  { x0: 0.03, y0: 0.47, x1: 0.97, y1: 0.7 }, // card number line
-  { x0: 0.03, y0: 0.68, x1: 0.7, y1: 0.97 }, // name, expiry, "VALID THRU"
+  { x0: 0.03, y0: 0.47, x1: 0.97, y1: 0.7 },
+  { x0: 0.03, y0: 0.68, x1: 0.7, y1: 0.97 },
 ];
 
 export function sensitiveRects(words: readonly FaceWord[]): Rect[] {
@@ -52,7 +35,6 @@ export function sensitiveRects(words: readonly FaceWord[]): Rect[] {
     const box = { x0: clamp(w.x0 - padX), y0: clamp(w.y0 - padY), x1: clamp(w.x1 + padX), y1: clamp(w.y1 + padY) };
     if (/\d/.test(text)) {
       rects.push(box);
-      // A card number is one row of groups; OCR often reads only some of them.
       if (/\d{4}/.test(text.replace(/\s/g, '')) && !DATE_LIKE.test(text)) rects.push({ x0: 0, y0: box.y0, x1: 1, y1: box.y1 });
     } else if (w.y0 > 0.5 && /[A-Za-z]{2,}/.test(text) && !NETWORK_WORD.test(text) && (w.confidence ?? 100) >= 55) {
       rects.push(box);
@@ -61,7 +43,6 @@ export function sensitiveRects(words: readonly FaceWord[]): Rect[] {
   return rects;
 }
 
-/** 1 where a pixel must be replaced. */
 export function maskFromRects(rects: readonly Rect[], w: number, h: number): Uint8Array {
   const mask = new Uint8Array(w * h);
   for (const r of rects) {
@@ -74,11 +55,6 @@ export function maskFromRects(rects: readonly Rect[], w: number, h: number): Uin
   return mask;
 }
 
-/**
- * Fills masked pixels from their surroundings (push-pull: average outward into coarser levels,
- * then pull the averages back into the holes), then smooths the filled area. The original pixels
- * under the mask never contribute.
- */
 export function inpaint(data: Uint8ClampedArray, w: number, h: number, mask: Uint8Array): void {
   type Level = { w: number; h: number; c: Float32Array; a: Float32Array };
   const base: Level = { w, h, c: new Float32Array(w * h * 3), a: new Float32Array(w * h) };
@@ -89,7 +65,6 @@ export function inpaint(data: Uint8ClampedArray, w: number, h: number, mask: Uin
     base.c[i * 3 + 1] = data[i * 4 + 1]!;
     base.c[i * 3 + 2] = data[i * 4 + 2]!;
   }
-  // Push: premultiplied 2×2 averages until one pixel remains.
   const levels: Level[] = [base];
   while (levels.at(-1)!.w > 1 || levels.at(-1)!.h > 1) {
     const f = levels.at(-1)!;
@@ -113,7 +88,6 @@ export function inpaint(data: Uint8ClampedArray, w: number, h: number, mask: Uin
     }
     levels.push(l);
   }
-  // Pull: fill each level's missing coverage from the (already complete) coarser level.
   for (let li = levels.length - 2; li >= 0; li--) {
     const f = levels[li]!;
     const cl = levels[li + 1]!;
@@ -123,7 +97,6 @@ export function inpaint(data: Uint8ClampedArray, w: number, h: number, mask: Uin
         const i = y * f.w + x;
         const a = f.a[i]!;
         if (a >= 1) continue;
-        // Bilinear sample of the coarser level at this pixel's centre.
         const gx = Math.min(cl.w - 1, Math.max(0, (x + 0.5) / 2 - 0.5));
         const gy = Math.min(cl.h - 1, Math.max(0, (y + 0.5) / 2 - 0.5));
         const x0 = Math.floor(gx);
@@ -154,7 +127,6 @@ export function inpaint(data: Uint8ClampedArray, w: number, h: number, mask: Uin
   smoothMasked(data, w, h, mask, 3);
 }
 
-/** A few 3×3 box-blur passes over masked pixels only, to hide the coarse-level blockiness. */
 function smoothMasked(data: Uint8ClampedArray, w: number, h: number, mask: Uint8Array, passes: number) {
   const src = new Uint8ClampedArray(data.length);
   for (let p = 0; p < passes; p++) {

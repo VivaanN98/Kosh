@@ -5,15 +5,11 @@ import type { AddMode } from './suggest';
 
 export interface AddPreset {
   mode?: AddMode;
-  /** Edit an existing transaction. */
   edit?: Transaction;
-  /** Start a refund of this expense. */
   refundOf?: Transaction;
   accountId?: Uuid;
   toAccountId?: Uuid;
-  /** Prefilled amount in paise (e.g. a card statement's remaining balance). */
   amount?: Paise;
-  /** Pay with a specific card (its linked account is used). */
   paymentCardId?: Uuid;
 }
 
@@ -33,11 +29,9 @@ export function AddSheetProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<{ open: boolean; preset: AddPreset; nonce: number }>({ open: false, preset: {}, nonce: 0 });
   const [mounted, setMounted] = useState(false);
 
-  // Preload the sheet when the browser is idle so the first open is instant.
   useEffect(() => {
     const idle = (window as Window & { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback;
     const preload = () => void loadSheet().then(() => setMounted(true));
-    // After the first page paints: still well before anyone reaches for the + button.
     const onPainted = () => (idle ? idle(preload) : setTimeout(preload, 200));
     window.addEventListener('kosh:painted', onPainted, { once: true });
     const fallback = setTimeout(preload, 5000);

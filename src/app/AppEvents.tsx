@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useToast } from '@/components/ui/Toast';
 import { useAddSheet } from '@/features/add/AddSheetContext';
 
-/** App-wide listeners: service-worker updates and the "Add expense" home-screen shortcut. */
 export function AppEvents() {
   const toast = useToast();
   const add = useAddSheet();

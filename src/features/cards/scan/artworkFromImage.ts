@@ -1,19 +1,12 @@
-/**
- * Builds a SANITIZED template artwork from a card photo: only colours and layout parameters are
- * derived (dominant colours, base style, chip position/colour, text tone, where the logo and issuer
- * sit). No pixels, text or numbers leave this function; the caller wipes the canvas afterwards.
- */
 import { DEFAULT_ARTWORK, textToneFor } from '@/domain/cards/artwork';
 import type { CardArtwork } from '@/domain/types';
 
 export interface WordBox {
   text: string;
-  /** Normalised 0..1 box within the card image. */
   x0: number;
   y0: number;
   x1: number;
   y1: number;
-  /** OCR confidence 0..100. */
   confidence?: number;
 }
 
@@ -50,7 +43,6 @@ function lum([r, g, b]: RGB): number {
 
 const dist = (a: RGB, b: RGB) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 
-/** k-means (k=3) over a small sample of pixels. */
 function dominantColors(d: Uint8ClampedArray): RGB[] {
   const pts: RGB[] = [];
   for (let i = 0; i < d.length; i += 4 * 3) pts.push([d[i]!, d[i + 1]!, d[i + 2]!]);
@@ -70,7 +62,6 @@ function dominantColors(d: Uint8ClampedArray): RGB[] {
     }
     centers = centers.map((c, k) => (counts[k] ? [sums[k]![0] / counts[k]!, sums[k]![1] / counts[k]!, sums[k]![2] / counts[k]!] : c)) as RGB[];
   }
-  // Keep clusters that cover a meaningful share (text/logos are small clusters).
   return centers.filter((_, k) => counts[k]! > pts.length * 0.12);
 }
 
@@ -97,7 +88,6 @@ export function artworkFromImage(card: HTMLCanvasElement, words: WordBox[] = [])
   else if (dom.length >= 3 && spread > 120) template = 'mesh';
   const colors: CardArtwork['colors'] = template === 'solid' ? [hex(mid), hex(mid)] : [hex(tl), hex(mid), hex(br)];
 
-  // Chip: a warm (gold) or bright neutral (silver) patch in the left or right middle band.
   const left = regionMean(d, w, h, 0.07, 0.33, 0.2, 0.55);
   const right = regionMean(d, w, h, 0.8, 0.33, 0.93, 0.55);
   const chipScore = (p: RGB) => {
@@ -110,12 +100,10 @@ export function artworkFromImage(card: HTMLCanvasElement, words: WordBox[] = [])
   const chipColor = chipSide === 'right' ? right : left;
   const chipStyle: CardArtwork['chipStyle'] = chipColor[0] > chipColor[2] + 20 ? 'gold' : 'silver';
 
-  // Gloss: a bright specular highlight well above the card's typical brightness.
   let peak = 0;
   for (let i = 0; i < d.length; i += 4) peak = Math.max(peak, lum([d[i]!, d[i + 1]!, d[i + 2]!]));
   const finish: CardArtwork['finish'] = peak - lum(mid) > 0.35 ? 'gloss' : 'matte';
 
-  // Layout from OCR word positions (network words and the first long word ≈ issuer).
   const networkWord = words.find((wd) => /VISA|MASTER|RUPAY|AMEX|AMERICAN|DINERS|DISCOVER|JCB|UNIONPAY/i.test(wd.text));
   let networkPosition: CardArtwork['networkPosition'] = 'bottom-right';
   if (networkWord) {
@@ -127,7 +115,7 @@ export function artworkFromImage(card: HTMLCanvasElement, words: WordBox[] = [])
   const issuerPosition: CardArtwork['issuerPosition'] = issuerWord && issuerWord.x0 > 0.5 ? 'top-right' : 'top-left';
 
   const tone = textToneFor(colors.filter(Boolean) as string[]);
-  c.width = 0; // release pixels
+  c.width = 0;
   return {
     ...DEFAULT_ARTWORK,
     template,

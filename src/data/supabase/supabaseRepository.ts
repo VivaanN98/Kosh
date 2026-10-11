@@ -1,8 +1,3 @@
-/**
- * Supabase repository. Reads go through PostgREST with RLS; every money-moving write is a
- * security-definer RPC (supabase/migrations/*_ledger_functions.sql). The browser never writes
- * transactions or ledger entries directly — it has no grant to.
- */
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import type { IsoDate } from '@/lib/dates';
 import type { Paise } from '@/lib/money';
@@ -30,6 +25,8 @@ import type {
 } from '@/domain/types';
 import type {
   AccountPatch,
+  AssistantMessage,
+  AssistantReply,
   BudgetInput,
   CategoryInput,
   ContributionInput,
@@ -51,16 +48,15 @@ import type {
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Row = Record<string, any>;
 
-// PostgREST returns bigint as JSON numbers; all our values are within Number.MAX_SAFE_INTEGER.
 const n = (v: unknown): number => (typeof v === 'string' ? Number(v) : (v as number));
 
-export const mapAccount = (r: Row): Account => ({
+const mapAccount = (r: Row): Account => ({
   id: r.id, name: r.name, kind: r.kind, isSystem: r.is_system, institution: r.institution, color: r.color, icon: r.icon,
   sortOrder: r.sort_order, archivedAt: r.archived_at, reconciledAt: r.reconciled_at,
   reconciledBalance: r.reconciled_balance_paise == null ? null : n(r.reconciled_balance_paise), seedKey: r.seed_key, createdAt: r.created_at,
 });
 
-export const mapTransaction = (r: Row): Transaction => ({
+const mapTransaction = (r: Row): Transaction => ({
   id: r.id, type: r.type, amount: n(r.amount_paise), occurredOn: r.occurred_on, accountId: r.account_id, toAccountId: r.to_account_id,
   categoryId: r.category_id, merchant: r.merchant, note: r.note, paymentCardId: r.payment_card_id, refundOf: r.refund_of,
   idempotencyKey: r.idempotency_key, deletedAt: r.deleted_at, version: r.version, createdAt: r.created_at, updatedAt: r.updated_at,
@@ -159,7 +155,6 @@ export class SupabaseRepository implements Repository {
     return id;
   }
 
-  /** Throws a KoshError on failure. Callers of maybeSingle() still null-check the result. */
   private check(res: { data: unknown; error: PostgrestError | null }): any {
     if (res.error) throw toKoshError(res.error);
     return res.data;
@@ -174,7 +169,6 @@ export class SupabaseRepository implements Repository {
     }
   }
 
-  /** Page through a select so PostgREST's 1000-row cap never truncates ledger reads. */
   private async selectAll(build: (from: number, to: number) => PromiseLike<{ data: Row[] | null; error: PostgrestError | null }>): Promise<Row[]> {
     const page = 1000;
     const out: Row[] = [];
@@ -191,8 +185,6 @@ export class SupabaseRepository implements Repository {
     }
   }
 
-  // Setup + profile ---------------------------------------------------------
-
   async ensureSetup(): Promise<void> {
     await this.rpc('ensure_user_setup', {});
   }
@@ -207,8 +199,6 @@ export class SupabaseRepository implements Repository {
     const uid = await this.uid();
     this.check(await this.client.from('profiles').update({ display_name: patch.displayName?.trim() || null }).eq('id', uid));
   }
-
-  // Accounts ----------------------------------------------------------------
 
   async listAccounts(): Promise<Account[]> {
     const rows = this.check(await this.client.from('accounts').select('*').eq('is_system', false).order('sort_order').order('created_at'));
@@ -260,8 +250,6 @@ export class SupabaseRepository implements Repository {
     return r && r.id ? mapTransaction(r) : null;
   }
 
-  // Transactions ------------------------------------------------------------
-
   async listTransactions(q: TransactionQuery = {}): Promise<Transaction[]> {
     const rows = await this.selectAll((from, to) => {
       let query = this.client.from('transactions').select('*');
@@ -310,8 +298,6 @@ export class SupabaseRepository implements Repository {
     return rows.map(mapEntry);
   }
 
-  // Categories ----------------------------------------------------------------
-
   async listCategories(): Promise<Category[]> {
     return this.check(await this.client.from('categories').select('*').order('sort_order').order('name')).map(mapCategory);
   }
@@ -343,8 +329,6 @@ export class SupabaseRepository implements Repository {
     this.check(await this.client.from('categories').update(row).eq('id', id));
   }
 
-  // Budgets -------------------------------------------------------------------
-
   async listBudgets(): Promise<Budget[]> {
     return this.check(await this.client.from('budgets').select('*')).map(mapBudget);
   }
@@ -364,8 +348,6 @@ export class SupabaseRepository implements Repository {
   async deleteBudget(id: Uuid): Promise<void> {
     this.check(await this.client.from('budgets').delete().eq('id', id));
   }
-
-  // Goals ---------------------------------------------------------------------
 
   async listGoals(): Promise<SavingsGoal[]> {
     return this.check(await this.client.from('savings_goals').select('*').order('created_at')).map(mapGoal);
@@ -437,8 +419,6 @@ export class SupabaseRepository implements Repository {
     );
   }
 
-  // Recurring -----------------------------------------------------------------
-
   async listRecurringRules(): Promise<RecurringRule[]> {
     return this.check(await this.client.from('recurring_rules').select('*').order('created_at')).map(mapRule);
   }
@@ -488,8 +468,6 @@ export class SupabaseRepository implements Repository {
     return mapOccurrence(await this.rpc('skip_occurrence', { p_id: id }));
   }
 
-  // Subscriptions ---------------------------------------------------------------
-
   async listSubscriptions(): Promise<Subscription[]> {
     return this.check(await this.client.from('subscriptions').select('*').order('created_at')).map(mapSubscription);
   }
@@ -519,8 +497,6 @@ export class SupabaseRepository implements Repository {
     if (!s) throw new KoshError('NOT_FOUND');
     await this.deleteRecurringRule(s.recurring_rule_id);
   }
-
-  // Cards -------------------------------------------------------------------------
 
   async listPaymentCards(): Promise<PaymentCard[]> {
     return this.check(await this.client.from('payment_cards').select('*').order('sort_order').order('created_at')).map(mapCard);
@@ -578,5 +554,14 @@ export class SupabaseRepository implements Repository {
 
   async closeCardStatement(accountId: Uuid, periodEnd: IsoDate): Promise<CardStatement> {
     return mapStatement(await this.rpc('close_card_statement', { p_account_id: accountId, p_period_end: periodEnd }));
+  }
+
+  async askAssistant(messages: AssistantMessage[]): Promise<AssistantReply> {
+    const { data, error } = await this.client.functions.invoke<{ reply?: string }>('assistant', { body: { messages } });
+    if (error) {
+      if ((error as { context?: Response }).context?.status === 503) return { status: 'not_configured' };
+      throw error;
+    }
+    return { status: 'ok', reply: data?.reply ?? 'No answer.' };
   }
 }

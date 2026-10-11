@@ -3,7 +3,6 @@ import type { SupabaseConfig } from './config';
 
 const clients = new Map<string, SupabaseClient>();
 
-/** One client per project per page (StrictMode re-runs effects; two auth clients would race). */
 export function createSupabase(config: SupabaseConfig, storageKey = 'kosh.auth'): SupabaseClient {
   const id = `${config.url}|${storageKey}`;
   let client = clients.get(id);

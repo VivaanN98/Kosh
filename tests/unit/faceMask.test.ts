@@ -1,7 +1,3 @@
-/**
- * Scanned card faces: what gets removed before the picture is kept, and that removed areas are
- * filled from their surroundings without any of the original pixels surviving.
- */
 import { describe, expect, it } from 'vitest';
 import { inpaint, maskFromRects, sensitiveRects, STANDARD_SENSITIVE_ZONES, type FaceWord } from '@/domain/cards/faceMask';
 
@@ -11,10 +7,8 @@ const covers = (rects: ReturnType<typeof sensitiveRects>, x: number, y: number) 
 describe('sensitiveRects', () => {
   it('removes the whole number row when only one group was read', () => {
     const rects = sensitiveRects([word('9017', 0.7, 0.58, 0.85, 0.66)]);
-    // The groups OCR missed, further left on the same row, are covered too.
     expect(covers(rects, 0.1, 0.62)).toBe(true);
     expect(covers(rects, 0.45, 0.62)).toBe(true);
-    // The rest of the design is kept.
     expect(covers(rects, 0.5, 0.2)).toBe(false);
     expect(covers(rects, 0.5, 0.9)).toBe(false);
   });
@@ -50,14 +44,12 @@ describe('inpaint', () => {
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
         const i = (y * w + x) * 4;
-        // A left→right blue gradient card…
         data[i] = 20;
         data[i + 1] = 60;
         data[i + 2] = 100 + x * 3;
         data[i + 3] = 255;
       }
     }
-    // …with bright white "digits" in the middle.
     const rect = { x0: 0.25, y0: 0.4, x1: 0.75, y1: 0.6 };
     const mask = maskFromRects([rect], w, h);
     for (let i = 0; i < w * h; i++) if (mask[i]) data.fill(255, i * 4, i * 4 + 3);
@@ -67,7 +59,6 @@ describe('inpaint', () => {
     for (let i = 0; i < w * h; i++) {
       if (!mask[i]) continue;
       const x = i % w;
-      // No white survives, and the fill follows the gradient around it.
       expect(data[i * 4]).toBeLessThan(40);
       expect(Math.abs(data[i * 4 + 2]! - (100 + x * 3))).toBeLessThan(14);
     }
@@ -77,12 +68,9 @@ describe('inpaint', () => {
 describe('standard zones (masked even when OCR reads nothing)', () => {
   it('cover the number line and the name/expiry area of an ID-1 card, but not the bank name or network mark', () => {
     const z = [...STANDARD_SENSITIVE_ZONES];
-    // number line (embossed digits typically centred around 55-62% height)
     for (const x of [0.08, 0.3, 0.5, 0.7, 0.92]) expect(covers(z, x, 0.58)).toBe(true);
-    // cardholder name and expiry, lower-left
     expect(covers(z, 0.1, 0.88)).toBe(true);
     expect(covers(z, 0.45, 0.75)).toBe(true);
-    // bank name (top-left) and network logo (bottom-right) stay
     expect(covers(z, 0.15, 0.12)).toBe(false);
     expect(covers(z, 0.85, 0.88)).toBe(false);
   });

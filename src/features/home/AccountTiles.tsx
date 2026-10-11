@@ -1,10 +1,5 @@
-/**
- * Home: every account as a colour tile with one clear action ("Open"), the way a launcher shows
- * its subjects. Text is white on a deep gradient (AA, see --tile-* in tokens.css); the big icon
- * is decoration only.
- */
 import { Link } from 'react-router';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Landmark } from 'lucide-react';
 import { IconByName } from '@/components/ui/CategoryIcon';
 import { Section } from '@/components/ui/bits';
 import { useDerived } from '@/data/hooks';
@@ -16,7 +11,24 @@ const MAX_TILES = 5;
 export function AccountTiles() {
   const d = useDerived();
   const accounts = d.activeAccounts.filter((a) => !a.isSystem);
-  if (accounts.length === 0) return null;
+  if (accounts.length === 0) {
+    return (
+      <Section title="Get started" className="mt-2">
+        <div className="card flex flex-col items-start gap-3 p-5" data-testid="first-run">
+          <span className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-surface-2 text-text-2" aria-hidden="true">
+            <Landmark size={22} />
+          </span>
+          <p className="serif text-[20px] leading-tight">Add your first account</p>
+          <p className="max-w-[44ch] text-[14px] text-text-2">
+            Start with a bank account or your cash in hand, and enter what it holds today. You can add cards, credit cards and goals whenever you like.
+          </p>
+          <Link to="/accounts?new=1" className="tap inline-flex h-11 items-center rounded-full bg-text px-5 text-[15px] font-semibold text-text-inverse" data-testid="first-run-add-account">
+            Add an account
+          </Link>
+        </div>
+      </Section>
+    );
+  }
   const shown = accounts.slice(0, MAX_TILES);
 
   return (

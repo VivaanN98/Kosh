@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { luhnValid, networkFromPrefix, parseCardText } from './ocrParse';
 
-// All numbers below are FICTIONAL test numbers (Luhn-valid where noted), never real cards.
 describe('parseCardText', () => {
   it('reads a clean debit card and keeps only the last four', () => {
     const r = parseCardText(['STATE BANK OF INDIA', 'GLOBAL INTERNATIONAL', 'DEBIT', '4000 1234 5678 9017', 'VALID THRU 12/30', 'VISA']);

@@ -117,7 +117,6 @@ function Stat({ label, value, tone, testId }: { label: string; value: number; to
   );
 }
 
-/** Chart 1 of 2: cumulative spending this month vs last month, plus the overall budget. */
 function MonthCard() {
   const snap = useSnapshot();
   const d = useDerived();
@@ -205,7 +204,6 @@ function Sparkline({ current, previous, budget }: { current: number[]; previous:
   );
 }
 
-/** Chart 2 of 2: where the money went this month (top categories). */
 function TopCategories() {
   const snap = useSnapshot();
   const d = useDerived();

@@ -1,10 +1,3 @@
-/**
- * Ledger test vectors — written once as data, executed against BOTH adapters:
- *   tests/unit/vectors.demo.test.ts  (TypeScript engine over IndexedDB)
- *   tests/db/vectors.supabase.test.ts (Postgres RPC functions)
- * Amounts are paise. All dates are in the past so server-side "today" checks pass.
- * `category` values are seed keys from src/domain/seed.ts.
- */
 import type { ErrorCode } from '@/domain/errors';
 
 const R = (rupees: number) => rupees * 100;
@@ -35,9 +28,7 @@ export type Step =
 
 export interface Check {
   label?: string;
-  /** Ledger balances by account ref (assets positive, card debt negative). */
   balances?: Record<string, number>;
-  /** Card debt (positive = owed) by account ref. */
   debt?: Record<string, number>;
   netWorth?: number;
   availableCash?: number;
@@ -46,14 +37,11 @@ export interface Check {
   categorySpending?: { category: string; from: string; to: string; amount: number };
   statement?: { ref: string; balance: number; minimumDue: number; periodStart?: string; dueOn?: string };
   occurrence?: { ref: string; status: 'pending' | 'posted' | 'skipped' };
-  /** Number of non-deleted transactions created by the vector (excludes opening balances). */
   transactionCount?: number;
-  /** Number of occurrences recorded for a rule. */
   occurrenceCount?: { rule: string; count: number };
   goalProgress?: Record<string, number>;
   earmarked?: number;
   budget?: { category: string | null; month: string; spent: number; state?: 'ok' | 'warning' | 'over' };
-  /** Two refs that must resolve to the same id (retry idempotency). */
   sameId?: [string, string];
 }
 

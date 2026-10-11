@@ -8,7 +8,6 @@ test('add an expense end to end (Supabase mode)', async ({ page }, info) => {
   await signIn(page);
   await expect(page.getByTestId('demo-badge')).toHaveCount(0);
 
-  // Income first so cash is available: amount → Income → Save.
   await page.getByTestId('add-button').locator('visible=true').click();
   const sheet = page.getByTestId('add-sheet');
   await expect(sheet).toBeVisible();
@@ -19,7 +18,6 @@ test('add an expense end to end (Supabase mode)', async ({ page }, info) => {
   await expect(sheet).toBeHidden();
   await expect(page.getByTestId('stat-available')).toContainText('₹10,000');
 
-  // The core flow: amount, then a single tap on Save (category, account and date are pre-filled).
   const t0 = Date.now();
   await page.getByTestId('add-button').locator('visible=true').click();
   await expect(sheet).toBeVisible();
@@ -30,13 +28,11 @@ test('add an expense end to end (Supabase mode)', async ({ page }, info) => {
   const elapsed = Date.now() - t0;
   info.annotations.push({ type: 'add-expense-ms', description: String(elapsed) });
 
-  // Optimistic UI: the row and the new balance show immediately.
   await expect(page.getByTestId('recent-list').getByTestId('tx-row').first()).toContainText('₹500');
   await expect(page.getByText('Expense added')).toBeVisible();
   const available = paiseFrom((await page.getByTestId('stat-available').innerText()).split('cash')[1] ?? '');
   expect(available).toBe(950_000);
 
-  // What the database holds: exactly one ₹500 expense, balanced postings.
   await expect
     .poll(async () => {
       const { data } = await admin().from('transactions').select('id, amount_paise, type').eq('user_id', user().id).eq('type', 'expense').is('deleted_at', null);

@@ -1,9 +1,3 @@
-/**
- * Ledger engine (TypeScript). Mirror of supabase/migrations/*_ledger_functions.sql:
- *   validateTransaction  ⇔ private.validate_tx
- *   buildPostings        ⇔ private.post_entries
- * The shared vectors in tests/vectors run against both, so they cannot drift.
- */
 import { addDays, type IsoDate } from '@/lib/dates';
 import { MAX_ABS_PAISE, type Paise } from '@/lib/money';
 import { fail } from '../errors';
@@ -20,12 +14,10 @@ import type {
 import { TRANSACTION_TYPES, TRANSFER_LIKE } from '../types';
 
 export interface LedgerLookup {
-  /** Any account including system accounts. */
   account(id: Uuid): Account | undefined;
   category(id: Uuid): Category | undefined;
   card(id: Uuid): PaymentCard | undefined;
   transaction(id: Uuid): Transaction | undefined;
-  /** Sum of non-deleted refunds pointing at `originalId`, excluding `excludeId`. */
   refundsTotal(originalId: Uuid, excludeId?: Uuid): Paise;
   systemAccountId(kind: 'income' | 'expense' | 'equity'): Uuid;
   today(): IsoDate;
@@ -50,10 +42,6 @@ function userAccount(l: LedgerLookup, id: Uuid | null | undefined): Account | un
   return a && !a.isSystem ? a : undefined;
 }
 
-/**
- * Validate and normalise a transaction draft. `old` is the stored row when editing, null when
- * creating or restoring. Throws KoshError with the same codes as the SQL function.
- */
 export function validateTransaction(draft: Transaction, old: Transaction | null, l: LedgerLookup): Transaction {
   const t: Transaction = { ...draft, merchant: clean(draft.merchant), note: clean(draft.note) };
   const isNew = old === null;
@@ -159,9 +147,8 @@ export function checkDate(date: IsoDate, today: IsoDate): void {
   }
 }
 
-export type Posting = Omit<LedgerEntry, 'id'>;
+type Posting = Omit<LedgerEntry, 'id'>;
 
-/** Balanced, debit-positive postings for a transaction. Deleted transactions post nothing. */
 export function buildPostings(t: Transaction, l: Pick<LedgerLookup, 'systemAccountId'>): Posting[] {
   if (t.deletedAt) return [];
   const p = (accountId: Uuid, amount: Paise, categoryId: Uuid | null = null): Posting => ({

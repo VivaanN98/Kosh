@@ -1,4 +1,3 @@
-/** RFC 4122 v4 UUID. Uses crypto.randomUUID when available (secure contexts), else getRandomValues. */
 export function uuid(): string {
   const c = globalThis.crypto;
   if (c && typeof c.randomUUID === 'function') return c.randomUUID();
@@ -10,7 +9,6 @@ export function uuid(): string {
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }
 
-/** A fresh idempotency key. Create one per user intent and reuse it on every retry of that intent. */
 export function idempotencyKey(prefix = 'k'): string {
   return `${prefix}:${uuid()}`;
 }

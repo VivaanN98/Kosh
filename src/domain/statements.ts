@@ -1,12 +1,8 @@
-/**
- * Credit card statement cycles. A statement is a snapshot of debt at the statement date;
- * current debt is always the live ledger balance. Mirrors public.close_card_statement.
- */
 import { addDays, addMonthsAnchored, daysInMonth, parseIso, toIso, type IsoDate } from '@/lib/dates';
 import { applyBps, max, min, type Paise } from '@/lib/money';
 import type { CardStatement, CreditCardSettings } from './types';
 
-export function statementDateIn(year: number, month: number, statementDay: number): IsoDate {
+function statementDateIn(year: number, month: number, statementDay: number): IsoDate {
   return toIso({ y: year, m: month, d: Math.min(statementDay, daysInMonth(year, month)) });
 }
 
@@ -15,7 +11,6 @@ export function isStatementDate(date: IsoDate, statementDay: number): boolean {
   return d === Math.min(statementDay, daysInMonth(y, m));
 }
 
-/** Most recent statement date on or before `onOrBefore`. */
 export function lastStatementDate(onOrBefore: IsoDate, statementDay: number): IsoDate {
   const { y, m } = parseIso(onOrBefore);
   const thisMonth = statementDateIn(y, m, statementDay);
@@ -51,11 +46,9 @@ export function statementPeriod(
   return { periodStart, periodEnd };
 }
 
-export interface StatementStatus {
+interface StatementStatus {
   statement: CardStatement;
-  /** Payments/credits posted to the card after the statement date. */
   paidSince: Paise;
-  /** What is still owed against this statement (never negative). */
   remaining: Paise;
   minimumRemaining: Paise;
   isPaid: boolean;

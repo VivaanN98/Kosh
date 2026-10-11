@@ -1,11 +1,3 @@
-/**
- * Client store: an in-memory mirror of the user's ledger with optimistic updates.
- *
- * - Optimistic writes are validated and posted locally with the SAME engine the Demo adapter uses
- *   (buildPostings/validateTransaction), so the UI updates in <100ms with correct numbers.
- * - The server write reuses one idempotency key across retries; on failure the change rolls back.
- * - After writes, the authoritative ledger is re-fetched in the background and replaces the mirror.
- */
 import { addDays, todayIST, type IsoDate } from '@/lib/dates';
 import { idempotencyKey, uuid } from '@/lib/ids';
 import { KoshError, toKoshError } from '@/domain/errors';
@@ -51,7 +43,6 @@ export interface Snapshot {
   cards: PaymentCard[];
   ccSettings: CreditCardSettings[];
   statements: CardStatement[];
-  /** Ids of transactions whose server write is still in flight. */
   pending: ReadonlySet<Uuid>;
 }
 
@@ -65,7 +56,6 @@ type Slice = Exclude<keyof Snapshot, 'status' | 'error' | 'version' | 'pending'>
 
 const sortTx = (a: Transaction, b: Transaction) => b.occurredOn.localeCompare(a.occurredOn) || b.createdAt.localeCompare(a.createdAt);
 
-/** Retry transient failures with the same idempotency key (a retry can never duplicate). */
 async function withRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
   let last: unknown;
   for (let i = 0; i < attempts; i++) {
@@ -89,8 +79,6 @@ export class AppStore {
 
   constructor(readonly repo: Repository) {}
 
-  // --- subscription (useSyncExternalStore) ---------------------------------
-
   subscribe = (fn: () => void) => {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
@@ -102,8 +90,6 @@ export class AppStore {
     this.snap = { ...this.snap, ...patch, version: this.snap.version + 1 };
     for (const l of this.listeners) l();
   }
-
-  // --- loading ---------------------------------------------------------------
 
   async load(): Promise<void> {
     try {
@@ -138,7 +124,6 @@ export class AppStore {
     this.set(Object.fromEntries(slices.map((s, i) => [s, values[i]])) as Partial<Snapshot>);
   }
 
-  /** Replace the optimistic mirror with the authoritative ledger once writes settle. */
   scheduleLedgerRefresh(delay = 1200) {
     if (this.refreshTimer) clearTimeout(this.refreshTimer);
     this.refreshTimer = setTimeout(() => {
@@ -146,8 +131,6 @@ export class AppStore {
       void this.reload('transactions', 'entries', 'accounts', 'contributions', 'occurrences', 'statements').catch(() => undefined);
     }, delay);
   }
-
-  // --- local ledger lookup for optimistic validation ---------------------------
 
   lookup(): LedgerLookup {
     const s = this.snap;
@@ -207,12 +190,6 @@ export class AppStore {
     });
   }
 
-  // --- transactions (optimistic) -------------------------------------------------
-
-  /**
-   * Validate locally (throws synchronously on invalid input), show the transaction immediately, and
-   * return a promise that settles when the server confirms. On failure the change rolls back.
-   */
   beginPost(input: TransactionInput, key = idempotencyKey('tx')): { optimistic: Transaction; done: Promise<Transaction> } {
     const stamp = new Date().toISOString();
     const draft: Transaction = {
@@ -230,7 +207,6 @@ export class AppStore {
         return saved;
       },
       (err) => {
-        // Remove only this optimistic row so concurrent optimistic writes survive the rollback.
         this.set(this.replaceTx(optimistic.id, null));
         throw toKoshError(err);
       },
@@ -310,8 +286,6 @@ export class AppStore {
     }
   }
 
-  // --- non-optimistic writes: call the server, then refresh the affected slices ----
-
   async run<T>(fn: (repo: Repository) => Promise<T>, ...slices: Slice[]): Promise<T> {
     this.inflight++;
     try {
@@ -325,28 +299,22 @@ export class AppStore {
     }
   }
 
-  // --- scheduled jobs: recurring occurrences + card statements ---------------------
-
   async runScheduledJobs(today: IsoDate = todayIST()): Promise<void> {
     let changed = false;
     const s = this.snap;
-    // Recurring: materialise every due date not yet recorded. The server enforces uniqueness.
     for (const rule of s.rules) {
       if (rule.status !== 'active') continue;
       const known = s.occurrences.filter((o) => o.ruleId === rule.id).map((o) => o.dueOn).sort();
       const resumeFrom = known.length ? addDays(known[known.length - 1]!, 1) : rule.startOn;
-      // Catch up at most 60 dates per run (oldest first); later runs continue from there.
       const due = occurrencesBetween(rule, resumeFrom, today, 60);
       for (const d of due) {
         try {
           await this.repo.materializeOccurrence(rule.id, d);
           changed = true;
         } catch {
-          // NOT_DUE/RULE_INACTIVE races are harmless; the next run retries.
         }
       }
     }
-    // Statements: close every past statement date for cards that have settings.
     for (const cs of s.ccSettings) {
       const known = new Set(s.statements.filter((x) => x.accountId === cs.accountId).map((x) => x.periodEnd));
       const firstActivity = s.entries.filter((e) => e.accountId === cs.accountId).reduce<IsoDate | null>((m, e) => (!m || e.occurredOn < m ? e.occurredOn : m), null);
@@ -360,7 +328,6 @@ export class AppStore {
           await this.repo.closeCardStatement(cs.accountId, d);
           changed = true;
         } catch {
-          /* retried next run */
         }
       }
     }

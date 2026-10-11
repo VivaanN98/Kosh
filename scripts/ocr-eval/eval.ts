@@ -1,8 +1,3 @@
-/**
- * OCR candidate evaluation (run: node scripts/ocr-eval/run.mjs).
- * Generates synthetic FICTIONAL cards on canvas under several capture conditions, runs each OCR
- * engine in the browser, parses with the production parser, and reports field accuracy + timings.
- */
 import { parseCardText } from '../../src/domain/cards/ocrParse';
 import { blurriness, preprocessForOcr } from '../../src/features/cards/scan/preprocess';
 import type { CardNetwork, CardType } from '../../src/domain/types';
@@ -39,7 +34,6 @@ const luhnComplete = (prefix: string) => {
   throw new Error('unreachable');
 };
 
-// Fictional numbers only (test ranges / random digits), never real cards.
 const CARDS: Truth[] = [
   { issuer: 'State Bank of India', issuerText: 'STATE BANK OF INDIA', network: 'visa', networkText: 'VISA', cardType: 'debit', tier: 'GLOBAL INTERNATIONAL', number: luhnComplete('400012345678901'), colors: ['#1d3f8f', '#4f8be6'], ink: '#ffffff' },
   { issuer: 'Indian Bank', issuerText: 'INDIAN BANK', network: 'rupay', networkText: 'RuPay', cardType: 'debit', tier: 'PLATINUM', number: luhnComplete('607000123456781'), colors: ['#3a3f47', '#b8bec6'], ink: '#ffffff' },
@@ -75,7 +69,6 @@ function drawCard(t: Truth, cond: Condition): HTMLCanvasElement {
   c.textAlign = 'right';
   c.fillText(t.cardType.toUpperCase(), W - 60, 100);
   c.textAlign = 'left';
-  // chip
   c.fillStyle = '#d9b56a';
   c.fillRect(70, 230, 110, 82);
   const groups = t.number.match(/.{1,4}/g)!.join('  ');
@@ -100,7 +93,6 @@ function drawCard(t: Truth, cond: Condition): HTMLCanvasElement {
   c.fillText(t.networkText, W - 60, 570);
   c.textAlign = 'left';
 
-  // Capture conditions → a "photo" canvas.
   const photo = document.createElement('canvas');
   photo.width = 1100;
   photo.height = 730;
@@ -196,7 +188,6 @@ const paddleEngine = (): Engine => {
   return {
     name: 'PaddleOCR PP-OCRv4 (@gutenye/ocr-browser + onnxruntime-web)',
     async init() {
-      // Optional engines: install them to re-run (npm i -D @gutenye/ocr-browser ocrad.js).
       const ortName = 'onnxruntime-web';
       const ort = (await import(/* @vite-ignore */ ortName)) as { env: { wasm: { wasmPaths: string } } };
       ort.env.wasm.wasmPaths = '/node_modules/onnxruntime-web/dist/';
@@ -215,7 +206,6 @@ const paddleEngine = (): Engine => {
       (window as unknown as { __PADDLE_RAW__: unknown }).__PADDLE_RAW__ = JSON.stringify(lines).slice(0, 600);
       type Box = { text: string; box: [number, number][] };
       const texts: Box[] = ((lines as { texts?: Box[] }).texts ?? []).slice();
-      // Group boxes into rows (vertical centre within half a box height), read left to right.
       const cy = (b: Box) => (b.box[0]![1] + b.box[2]![1]) / 2;
       const hh = (b: Box) => Math.abs(b.box[2]![1] - b.box[0]![1]);
       texts.sort((a, b) => cy(a) - cy(b));
@@ -283,7 +273,6 @@ async function main() {
         network: parsed.network === s.t.network,
         cardType: parsed.cardType === s.t.cardType,
         last4: parsed.last4 === s.t.number.slice(-4),
-        // Fictional synthetic data only — logged for engine debugging.
         sample: rows.length === 0 ? lines.slice(0, 12) : undefined,
         flaggedWrong: (['issuer', 'network', 'cardType', 'last4'] as const).filter((f) => {
           const ok = f === 'issuer' ? parsed.issuer === s.t.issuer : f === 'network' ? parsed.network === s.t.network : f === 'cardType' ? parsed.cardType === s.t.cardType : parsed.last4 === s.t.number.slice(-4);

@@ -1,10 +1,6 @@
-/**
- * Default data created once per user. The SQL function `private.seed_user` mirrors this list;
- * `tests/db/seed.test.ts` asserts they match.
- */
-import type { CardArtwork, CardNetwork, CardType, CategoryKind } from './types';
+import type { CategoryKind } from './types';
 
-export interface SeedCategory {
+interface SeedCategory {
   key: string;
   kind: CategoryKind;
   name: string;
@@ -94,72 +90,4 @@ export const SEED_CATEGORIES: SeedCategory[] = [
   { key: 'income.cashback', kind: 'income', name: 'Cashback & Rewards', icon: 'coins', color: '#c3e88d' },
   { key: 'income.gifts', kind: 'income', name: 'Gifts Received', icon: 'gift', color: '#a6e3a1' },
   { key: 'income.other', kind: 'income', name: 'Other Income', icon: 'plus-circle', color: '#94e2d5' },
-];
-
-export interface SeedBankAccount {
-  key: string;
-  name: string;
-  institution: string;
-  color: string;
-}
-
-export const SEED_ACCOUNTS: SeedBankAccount[] = [
-  { key: 'acct.sbi', name: 'SBI Savings', institution: 'State Bank of India', color: '#2a5bd7' },
-  { key: 'acct.indianbank', name: 'Indian Bank Savings', institution: 'Indian Bank', color: '#1f6f8b' },
-];
-
-export interface SeedCard {
-  key: string;
-  accountKey: string;
-  issuer: string;
-  displayName: string;
-  network: CardNetwork;
-  cardType: CardType;
-  artwork: CardArtwork;
-}
-
-/** The two initial cards. No numbers, expiry dates or other sensitive details are invented. */
-export const SEED_CARDS: SeedCard[] = [
-  {
-    key: 'card.sbi.global',
-    accountKey: 'acct.sbi',
-    issuer: 'State Bank of India',
-    displayName: 'SBI Global International',
-    network: 'visa',
-    cardType: 'debit',
-    artwork: {
-      version: 1,
-      template: 'gradient',
-      colors: ['#1d3f8f', '#2f6fd6', '#7fb2ff'],
-      textTone: 'light',
-      chip: 'left',
-      chipStyle: 'gold',
-      networkPosition: 'bottom-right',
-      issuerPosition: 'top-left',
-      contactless: true,
-      pattern: 'waves',
-      finish: 'gloss',
-    },
-  },
-  {
-    key: 'card.indianbank.platinum',
-    accountKey: 'acct.indianbank',
-    issuer: 'Indian Bank',
-    displayName: 'Debit Platinum',
-    network: 'rupay',
-    cardType: 'debit',
-    artwork: {
-      version: 1,
-      template: 'metal',
-      colors: ['#3a3f47', '#8c939c', '#d9dde2'],
-      textTone: 'light',
-      chip: 'left',
-      chipStyle: 'silver',
-      networkPosition: 'bottom-right',
-      issuerPosition: 'top-left',
-      contactless: true,
-      pattern: 'arcs',
-      finish: 'matte',
-    },
-  },
 ];

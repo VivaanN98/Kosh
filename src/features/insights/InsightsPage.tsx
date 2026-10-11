@@ -1,8 +1,3 @@
-/**
- * Insights: every number is derived from ledger entries via domain/reports + domain/ledger/metrics.
- * Recharts is only loaded with this route. Charts use the validated categorical palette in fixed
- * order (--chart-1, --chart-2…), one y-axis each, a hover tooltip, and a table view.
- */
 import { useMemo, useState, type ReactNode } from 'react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { m } from 'motion/react';
@@ -139,7 +134,6 @@ export default function InsightsPage() {
   );
 }
 
-/** Legend labels wear text tokens, never the series colour; the swatch carries identity. */
 const legendText = (value: string) => <span style={{ color: 'var(--text-2)' }}>{value}</span>;
 
 function Tile({ label, value }: { label: string; value: ReactNode }) {
@@ -212,7 +206,6 @@ function ChartTooltip({ active, payload, label, percent }: TooltipProps) {
   );
 }
 
-/** Ranked bars (one hue = magnitude). Tap a category to drill into its subcategories. */
 function CategoryBreakdown({ from, to, total }: { from: string; to: string; total: number }) {
   const snap = useSnapshot();
   const d = useDerived();
@@ -287,7 +280,6 @@ function CategoryBreakdown({ from, to, total }: { from: string; to: string; tota
   );
 }
 
-/** Cumulative spending this month vs last month. */
 function SpendingTrend() {
   const snap = useSnapshot();
   const d = useDerived();

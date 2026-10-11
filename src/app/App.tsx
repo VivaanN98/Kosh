@@ -37,7 +37,6 @@ export function App() {
                     <Route path="plans" element={<PlansPage />} />
                     <Route path="plans/:tab" element={<PlansPage />} />
                     <Route path="settings" element={<SettingsPage />} />
-                    {/* The comparison lab was retired: card style now lives in Settings. */}
                     <Route path="design-lab/cards" element={<Navigate to="/settings#card-style" replace />} />
                     <Route path="*" element={<NotFound />} />
                   </Route>

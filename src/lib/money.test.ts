@@ -47,7 +47,7 @@ describe('money', () => {
     expect(parseRupees('1,23,456.7')).toBe(12345670);
     expect(parseRupees('₹ 0.1')).toBe(10);
     expect(parseRupees('.5')).toBe(50);
-    expect(parseRupees('0.29')).toBe(29); // 0.29 * 100 in floats is 28.999...
+    expect(parseRupees('0.29')).toBe(29);
     expect(parseRupees('1.005')).toBeNull();
     expect(parseRupees('-5')).toBeNull();
     expect(parseRupees('abc')).toBeNull();

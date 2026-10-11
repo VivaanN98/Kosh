@@ -1,12 +1,6 @@
-/**
- * "Ask Kosh" — the read-only assistant. Talks to the `assistant` Edge Function, which holds the
- * API key server-side and can only run read-only SQL queries for the signed-in user. Nothing on
- * this screen can change data. Card details are never sent.
- */
 import { AnimatePresence, m } from 'motion/react';
 import { useRef, useState } from 'react';
 import { ArrowUp, KeyRound, Sparkles } from 'lucide-react';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { Sheet } from '@/components/ui/Sheet';
 import { Spinner } from '@/components/ui/Button';
 import { useBackend, useStore } from '@/data/hooks';
@@ -43,17 +37,12 @@ export function AssistantSheet({ open, onClose }: { open: boolean; onClose: () =
     setState('thinking');
     requestAnimationFrame(() => listRef.current?.scrollTo({ top: listRef.current.scrollHeight }));
     try {
-      const client = (store.repo as unknown as { client: SupabaseClient }).client;
-      const { data, error } = await client.functions.invoke<{ reply?: string; error?: string }>('assistant', { body: { messages: next.slice(-20) } });
-      if (error) {
-        const status = (error as { context?: Response }).context?.status;
-        if (status === 503) {
-          setState('not_configured');
-          return;
-        }
-        throw error;
+      const result = await store.repo.askAssistant(next.slice(-20));
+      if (result.status === 'not_configured') {
+        setState('not_configured');
+        return;
       }
-      setTurns([...next, { role: 'assistant', content: data?.reply ?? 'No answer.' }]);
+      setTurns([...next, { role: 'assistant', content: result.reply }]);
       setState('ready');
       requestAnimationFrame(() => listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' }));
     } catch {

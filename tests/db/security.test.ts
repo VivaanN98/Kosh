@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { KoshError } from '@/domain/errors';
-import { SEED_ACCOUNTS, SEED_CARDS, SEED_CATEGORIES } from '@/domain/seed';
+import { SEED_CATEGORIES } from '@/domain/seed';
 import { DEFAULT_ARTWORK } from '@/domain/cards/artwork';
 import { adminClient, createTestUser, dbConfigured, deleteTestUser, type TestUser } from './helpers';
 
@@ -28,30 +28,25 @@ describe.skipIf(!dbConfigured)('Supabase security, RLS and reliability', () => {
     await deleteTestUser(bob);
   });
 
-  it('seeds categories, the two bank accounts and the two cards exactly once, matching the TS seed', async () => {
+  it('seeds categories exactly once, matching the TS seed, and no bank accounts or cards', async () => {
     await alice.repo.ensureSetup();
     await alice.repo.ensureSetup();
     const cats = await alice.repo.listCategories();
     const expected = SEED_CATEGORIES.flatMap((c) => [c.key, ...(c.children ?? []).map((ch) => ch.key)]);
     expect(cats.filter((c) => c.seedKey).map((c) => c.seedKey).sort()).toEqual([...expected].sort());
     for (const c of SEED_CATEGORIES) expect(cats.find((x) => x.seedKey === c.key)?.name).toBe(c.name);
-    const accounts = await alice.repo.listAccounts();
-    for (const a of SEED_ACCOUNTS) expect(accounts.filter((x) => x.seedKey === a.key)).toHaveLength(1);
-    const cards = await alice.repo.listPaymentCards();
-    for (const c of SEED_CARDS) {
-      const card = cards.find((x) => x.seedKey === c.key);
-      expect(card?.displayName).toBe(c.displayName);
-      expect(card?.network).toBe(c.network);
-      expect(card?.last4).toBeNull();
-      expect(card?.accountId).toBe(accounts.find((a) => a.seedKey === c.accountKey)?.id);
-    }
+    expect((await alice.repo.listAccounts()).map((a) => a.name)).toEqual(['Alice Bank']);
+    expect(await alice.repo.listPaymentCards()).toEqual([]);
+    expect((await bob.repo.listAccounts())).toEqual([]);
+    expect(await bob.repo.listPaymentCards()).toEqual([]);
   });
 
-  it('does not re-create a seeded card the user deleted', async () => {
-    const card = (await bob.repo.listPaymentCards()).find((c) => c.seedKey === 'card.sbi.global')!;
+  it('does not bring back a card the user deleted', async () => {
+    const bank = await bob.repo.createAccount({ name: 'Bob Bank', kind: 'bank' }, 'acct:bob-bank-1');
+    const card = await bob.repo.createPaymentCard({ accountId: bank.id, issuer: 'Bob Bank', network: 'visa', cardType: 'debit', displayName: 'Bob Debit', last4: null, artwork: DEFAULT_ARTWORK, source: 'manual' });
     await bob.repo.deletePaymentCard(card.id);
     await bob.repo.ensureSetup();
-    expect((await bob.repo.listPaymentCards()).some((c) => c.seedKey === 'card.sbi.global')).toBe(false);
+    expect(await bob.repo.listPaymentCards()).toEqual([]);
   });
 
   it('RLS: another user cannot read accounts, transactions or ledger entries', async () => {
@@ -91,7 +86,7 @@ describe.skipIf(!dbConfigured)('Supabase security, RLS and reliability', () => {
     expect(upd.error).not.toBeNull();
     const del = await alice.client.from('ledger_entries').delete().eq('transaction_id', aliceTx);
     expect(del.error).not.toBeNull();
-    const anon = adminClient(); // sanity: data still intact
+    const anon = adminClient();
     const { data } = await anon.from('ledger_entries').select('amount_paise').eq('transaction_id', aliceTx);
     expect(data).toHaveLength(2);
   });
@@ -127,7 +122,6 @@ describe.skipIf(!dbConfigured)('Supabase security, RLS and reliability', () => {
     const base = { accountId: aliceBank, issuer: 'Test Bank', network: 'visa' as const, cardType: 'debit' as const, artwork: DEFAULT_ARTWORK, source: 'manual' as const };
     await expect(alice.repo.createPaymentCard({ ...base, displayName: '4111 1111 1111 1111' })).rejects.toBeInstanceOf(KoshError);
     await expect(alice.repo.createPaymentCard({ ...base, last4: '12345' })).rejects.toBeInstanceOf(KoshError);
-    // Bypass the client-side checks entirely: the database itself must refuse.
     const raw = await alice.client.from('payment_cards').insert({
       user_id: alice.id, account_id: aliceBank, issuer: 'Bank 4111-1111-1111-1111', network: 'visa', card_type: 'debit', source: 'manual',
     });
@@ -141,13 +135,11 @@ describe.skipIf(!dbConfigured)('Supabase security, RLS and reliability', () => {
       user_id: alice.id, account_id: aliceBank, issuer: 'Bank', network: 'visa', card_type: 'debit', source: 'manual', last4: '4111111111111111',
     });
     expect(rawLast4.error).not.toBeNull();
-    // There is no column that could hold a full number, CVV, expiry, PIN or photo.
     const { data } = await alice.client.from('payment_cards').select('*').limit(1);
     const columns = Object.keys(data?.[0] ?? {});
     for (const forbidden of ['number', 'pan', 'card_number', 'cvv', 'cvc', 'pin', 'expiry', 'photo', 'image']) {
       expect(columns).not.toContain(forbidden);
     }
-    // Scan every stored card text column in the database for card-number-shaped data.
     const all = await adminClient().from('payment_cards').select('issuer, display_name, last4, artwork');
     for (const row of all.data ?? []) {
       expect(JSON.stringify(row).replace(/[\s-]/g, '')).not.toMatch(/\d{12,}/);

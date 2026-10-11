@@ -1,7 +1,3 @@
-/**
- * Executes ledger vectors against any Repository and asserts every check using the shared
- * metric functions. Used by both the Demo and Supabase test suites.
- */
 import { expect } from 'vitest';
 import type { Repository } from '@/data/repository';
 import { KoshError } from '@/domain/errors';
@@ -23,7 +19,6 @@ import type { Check, Step, Vector } from './ledgerVectors';
 
 interface RunState {
   refs: Map<string, string>;
-  /** Idempotency key used for each transaction ref (to retry or edit). */
   keys: Map<string, string>;
   createdTx: Set<string>;
   categories: Map<string, string>;
@@ -255,7 +250,6 @@ async function runCheck(repo: Repository, state: RunState, check: Check): Promis
   const vectorAccounts = accounts.filter((a) => own.has(a.id));
   const position = netPosition(vectorAccounts, balances);
 
-  // Invariant: the whole ledger is balanced.
   expect(entries.reduce((s, e) => s + e.amount, 0), `ledger balanced${label}`).toBe(0);
 
   for (const [name, amount] of Object.entries(check.balances ?? {})) {

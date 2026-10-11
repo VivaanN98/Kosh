@@ -9,9 +9,10 @@ import type { Repository } from '@/data/repository';
 async function setup(wrap: (repo: DemoRepository) => Repository = (r) => r) {
   const demo = new DemoRepository(DemoStore.memory(), { today: () => '2026-10-10' });
   await demo.ensureSetup();
+  await demo.createAccount({ name: 'Test Bank', kind: 'bank' }, 'acct:test-bank');
   const store = new AppStore(wrap(demo));
   await store.load();
-  const bank = store.getSnapshot().accounts.find((a) => a.seedKey === 'acct.sbi')!;
+  const bank = store.getSnapshot().accounts.find((a) => a.name === 'Test Bank')!;
   const food = store.getSnapshot().categories.find((c) => c.seedKey === 'food')!;
   return { demo, store, bank, food };
 }

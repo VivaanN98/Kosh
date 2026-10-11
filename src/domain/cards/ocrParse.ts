@@ -1,22 +1,13 @@
-/**
- * Turns OCR text from a card photo into the few fields Kosh keeps: issuer, network, type, an
- * optional display name and optional last four digits.
- *
- * PRIVACY: the input text may contain a full card number. This module never returns, stores or
- * logs it: the number is only used, in a local variable, to derive the last four digits and the
- * network (from its prefix), then it goes out of scope. Callers must drop the raw text right after.
- */
 import type { CardNetwork, CardType } from '../types';
 
 export type UncertainField = 'issuer' | 'network' | 'cardType' | 'last4';
 
-export interface ParsedCard {
+interface ParsedCard {
   issuer: string | null;
   network: CardNetwork | null;
   cardType: CardType | null;
   displayName: string | null;
   last4: string | null;
-  /** Fields the user must confirm because recognition was weak or missing. */
   uncertain: UncertainField[];
 }
 
@@ -25,8 +16,7 @@ interface Issuer {
   aliases: string[];
 }
 
-/** Indian and common international issuers (names as printed on cards). */
-export const ISSUERS: Issuer[] = [
+const ISSUERS: Issuer[] = [
   { name: 'State Bank of India', aliases: ['STATE BANK OF INDIA', 'SBI', 'STATE BANK'] },
   { name: 'SBI Card', aliases: ['SBI CARD', 'SBICARD'] },
   { name: 'HDFC Bank', aliases: ['HDFC BANK', 'HDFC'] },
@@ -71,8 +61,7 @@ const TIERS = [
   'MOMENTUM', 'MAGNUS', 'ATLAS', 'PRIVILEGE', 'PREMIER', 'SELECT', 'CORPORATE', 'TRAVEL', 'DIAMOND', 'EMERALD',
 ];
 
-/** Levenshtein distance (small strings only). */
-export function editDistance(a: string, b: string): number {
+function editDistance(a: string, b: string): number {
   const dp = Array.from({ length: a.length + 1 }, (_, i) => [i, ...new Array<number>(b.length).fill(0)]);
   for (let j = 1; j <= b.length; j++) dp[0]![j] = j;
   for (let i = 1; i <= a.length; i++) {
@@ -83,7 +72,6 @@ export function editDistance(a: string, b: string): number {
   return dp[a.length]![b.length]!;
 }
 
-/** Normalised similarity of `needle` to the best-matching window of words in `line` (0..1). */
 function windowScore(line: string, needle: string): number {
   const words = line.split(' ').filter(Boolean);
   const n = needle.split(' ').length;
@@ -104,7 +92,6 @@ function normaliseLine(s: string): string {
     .trim();
 }
 
-/** Map OCR look-alikes to digits inside digit runs. */
 function toDigits(s: string): string {
   return s.replace(/[Oo]/g, '0').replace(/[IlL|]/g, '1').replace(/[S]/g, '5').replace(/[B]/g, '8').replace(/[Z]/g, '2');
 }
@@ -125,7 +112,6 @@ export function luhnValid(digits: string): boolean {
   return digits.length >= 12 && sum % 10 === 0;
 }
 
-/** Network from the card number's leading digits (IIN ranges). */
 export function networkFromPrefix(digits: string): CardNetwork | null {
   const p2 = Number(digits.slice(0, 2));
   const p3 = Number(digits.slice(0, 3));
@@ -140,10 +126,6 @@ export function networkFromPrefix(digits: string): CardNetwork | null {
   return null;
 }
 
-/**
- * Extract the last four digits (and the IIN network) from text WITHOUT returning the number.
- * Looks for 4-4-4-4 / 4-6-5 / 4-4-4-4-3 groupings, tolerant of OCR look-alikes.
- */
 function extractNumberFacts(lines: string[]): { last4: string | null; network: CardNetwork | null; confident: boolean } {
   const text = lines.join(' ');
   const pattern = /(?<![0-9A-Z])([0-9OoIlSBZ]{4})[ -]?([0-9OoIlSBZ]{4,6})[ -]?([0-9OoIlSBZ]{4,5})(?:[ -]?([0-9OoIlSBZ]{3,4}))?(?![0-9A-Z])/g;
@@ -157,7 +139,6 @@ function extractNumberFacts(lines: string[]): { last4: string | null; network: C
     fallback ??= candidate.slice(-4);
   }
   if (fallback) return { last4: fallback, network: null, confident: false };
-  // A masked number ("XXXX XXXX XXXX 1234" / "•••• 1234").
   const masked = /(?:[X*•]{4}[ -]?){2,3}([0-9OoIlSB]{4})\b/i.exec(text);
   if (masked) return { last4: toDigits(masked[1]!), network: null, confident: false };
   return { last4: null, network: null, confident: false };
@@ -170,11 +151,9 @@ function findIssuer(lines: string[]): { name: string; score: number } | null {
     if (!line) continue;
     for (const issuer of ISSUERS) {
       for (const alias of issuer.aliases) {
-        // OCR often drops spaces ("HDFCBANK"): a long alias found inside the compacted line counts.
         const glued = alias.replace(/ /g, '').length >= 6 && line.replace(/ /g, '').includes(alias.replace(/ /g, ''));
-        if (!glued && alias.length <= 4 && !new RegExp(`\\b${alias}\\b`).test(line)) continue; // short aliases: exact word only
+        if (!glued && alias.length <= 4 && !new RegExp(`\\b${alias}\\b`).test(line)) continue;
         const score = glued ? 1 : windowScore(line, alias) * (alias.length <= 4 ? 0.95 : 1);
-        // Ties go to the longer (more specific) alias: "STATE BANK OF INDIA" beats "BANK OF INDIA".
         if (!best || score > best.score + 1e-9 || (Math.abs(score - best.score) < 1e-9 && alias.length > best.len)) {
           best = { name: issuer.name, score, len: alias.length };
         }

@@ -15,7 +15,7 @@ const NAV = [
   { to: '/plans', label: 'Plans', icon: Target },
 ] as const;
 
-export function DemoBadge({ compact = false }: { compact?: boolean }) {
+function DemoBadge({ compact = false }: { compact?: boolean }) {
   const { mode } = useBackend();
   if (mode !== 'demo') return null;
   return (
@@ -112,7 +112,6 @@ function SideNav() {
 function TabBar() {
   const items = [NAV[0], NAV[1], null, NAV[2], NAV[3]] as const;
   return (
-    // A floating pill, detached from the screen edges; content scrolls underneath it.
     <nav
       aria-label="Primary"
       className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(10px+var(--safe-bottom))] md:hidden"
@@ -120,16 +119,16 @@ function TabBar() {
       <ul className="glass glass-bar pointer-events-auto mx-auto flex h-[var(--tabbar-h)] max-w-[420px] items-center justify-around rounded-full px-2 shadow-3">
         {items.map((item) =>
           item === null ? (
-            <li key="add">
+            <li key="add" className="shrink-0">
               <AddButton />
             </li>
           ) : (
-            <li key={item.to}>
+            <li key={item.to} className="flex min-w-0 flex-1 justify-center">
               <NavLink
                 to={item.to}
                 end={'end' in item}
                 className={({ isActive }) =>
-                  `relative flex h-[52px] w-[64px] flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-medium transition-colors ${
+                  `relative flex h-[52px] w-full max-w-[64px] flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-medium transition-colors ${
                     isActive ? 'text-mint' : 'text-text-3'
                   }`
                 }
@@ -166,7 +165,6 @@ const TAB_ORDER = ['', 'insights', 'accounts', 'plans'];
 export function AppShell({ children }: { children?: ReactNode }) {
   const location = useLocation();
   const section = location.pathname.split('/')[1] ?? '';
-  // Remember the previous tab so content can enter from the side the new one sits on.
   const [nav, setNav] = useState({ section, prev: section });
   if (nav.section !== section) setNav({ section, prev: nav.section });
   const from = TAB_ORDER.indexOf(nav.prev);

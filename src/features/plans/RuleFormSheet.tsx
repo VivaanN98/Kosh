@@ -12,10 +12,6 @@ import { parseRupees, toDecimalString } from '@/lib/money';
 import { toKoshError } from '@/domain/errors';
 import type { Frequency, RecurringMode, RecurringRule, RecurringType } from '@/domain/types';
 
-/**
- * Create/edit a recurring rule, or (asSubscription) a subscription, which owns exactly one rule.
- * Charges only ever come from the rule, so a subscription can never double-charge.
- */
 export function RuleFormSheet({ rule, asSubscription: editingSub = false, onClose }: { rule?: RecurringRule; asSubscription?: boolean; onClose: () => void }) {
   const [asSubscription, setAsSubscription] = useState(editingSub);
   const store = useStore();

@@ -33,7 +33,7 @@
 3. The picture is OCR'd again. If digits survive two rounds, no picture is kept and the template
    is used.
 
-Honest limit: this is best effort on-device image processing, not a guarantee. A card printed in
+Limit: this is best effort on-device image processing, not a guarantee. A card printed in
 an unusual layout could keep a digit outside the standard zones that OCR also missed. The picture
 never leaves the device. To avoid keeping any picture, choose the colour template on the review step.
 

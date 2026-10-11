@@ -13,10 +13,6 @@ import { balancesByAccount } from '@/domain/ledger/metrics';
 import { toKoshError } from '@/domain/errors';
 import type { Account } from '@/domain/types';
 
-/**
- * Reconcile: enter what the bank (or card statement) shows. The difference is posted as an
- * adjustment against equity — never as income or spending.
- */
 export function ReconcileSheet({ account, open, onClose }: { account: Account; open: boolean; onClose: () => void }) {
   const store = useStore();
   const snap = useSnapshot();

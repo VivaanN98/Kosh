@@ -1,12 +1,3 @@
-/**
- * Chooses the backend and owns auth.
- *
- * - Supabase configured (VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY): Supabase mode, sign-in required.
- *   Demo Mode is NEVER used silently here; it only runs if the user explicitly picks it on the
- *   sign-in screen, and then a persistent "Demo Mode" badge is shown.
- * - Not configured: Demo Mode (IndexedDB) with the same persistent badge.
- * Adapters are dynamically imported so Demo users never download supabase-js and vice versa.
- */
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { readSupabaseConfig } from './supabase/config';
@@ -25,7 +16,7 @@ function demoChosen(): boolean {
   }
 }
 
-export function setDemoChoice(on: boolean) {
+function setDemoChoice(on: boolean) {
   try {
     if (on) localStorage.setItem(DEMO_FLAG, '1');
     else {
@@ -33,13 +24,11 @@ export function setDemoChoice(on: boolean) {
       sessionStorage.removeItem(DEMO_FLAG);
     }
   } catch {
-    /* storage blocked: choice lasts for this page only */
   }
 }
 
 let demoBoot: Promise<AppStore> | null = null;
 
-/** One Demo store per page load (StrictMode double-invokes effects; seeding must run once). */
 function startDemo(): Promise<AppStore> {
   demoBoot ??= bootDemo().catch((err) => {
     demoBoot = null;
@@ -70,7 +59,6 @@ export function BackendProvider({ children, fallback }: { children: ReactNode; f
   const [demoStore, setDemoStore] = useState<AppStore | null>(null);
   const [userStore, setUserStore] = useState<{ userId: string; store: AppStore } | null>(null);
 
-  // Demo Mode bootstrap.
   useEffect(() => {
     if (!demo) return;
     let cancelled = false;
@@ -80,7 +68,6 @@ export function BackendProvider({ children, fallback }: { children: ReactNode; f
     };
   }, [demo]);
 
-  // Supabase bootstrap: client + session listener.
   useEffect(() => {
     if (demo || !config) return;
     let unsub: (() => void) | undefined;
@@ -118,7 +105,6 @@ export function BackendProvider({ children, fallback }: { children: ReactNode; f
     await client?.auth.signOut();
   }, [demo, client, config]);
 
-  // A store only ever serves the user it was created for (sign-out/sign-in swaps it).
   const store = demo ? demoStore : userStore && userStore.userId === userId ? userStore.store : null;
   const value = useMemo<BackendContextValue | null>(
     () => (store ? { mode: demo ? 'demo' : 'supabase', store, userEmail: session?.user.email ?? null, signOut } : null),

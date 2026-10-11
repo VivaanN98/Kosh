@@ -1,7 +1,3 @@
-/**
- * Visual pass: key screens at the project's viewport (mobile / desktop) in both themes.
- * Output: e2e/.artifacts/screens/<project>-<theme>-<screen>.png (reviewed by eye, not diffed).
- */
 import { test } from '@playwright/test';
 import { signIn } from './helpers';
 

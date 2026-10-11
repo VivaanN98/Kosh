@@ -1,7 +1,3 @@
-/**
- * Card artwork is a sanitized TEMPLATE: colours and layout parameters only. It never contains
- * text from the card, numbers or image data. `sanitizeArtwork` is applied before every save.
- */
 import { hasCardLikeNumber } from '../ledger/engine';
 import type { CardArtwork, CardNetwork } from '../types';
 import { fail } from '../errors';
@@ -46,8 +42,7 @@ export function sanitizeArtwork(input: unknown): CardArtwork {
   return out;
 }
 
-/** Relative luminance (WCAG) of a hex colour, 0..1. */
-export function luminance(hex: string): number {
+function luminance(hex: string): number {
   const n = parseInt(hex.slice(1), 16);
   const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
     const s = v / 255;
@@ -73,7 +68,6 @@ export const NETWORK_LABEL: Record<CardNetwork, string> = {
   other: 'Other',
 };
 
-/** Validate the optional last four digits. */
 export function normalizeLast4(value: string | null | undefined): string | null {
   const v = value?.trim() ?? '';
   if (v === '') return null;

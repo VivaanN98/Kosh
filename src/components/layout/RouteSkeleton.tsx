@@ -1,6 +1,5 @@
 import { Skeleton } from '@/components/ui/bits';
 
-/** Matches the page layout (header + hero + list) so content swaps in without layout shift. */
 export function RouteSkeleton() {
   return (
     <div className="mx-auto w-full max-w-[var(--content-max)] px-4 pt-3 md:px-8 md:pt-8" aria-busy="true" aria-label="Loading">

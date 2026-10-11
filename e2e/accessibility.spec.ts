@@ -12,7 +12,6 @@ test('reduced motion: sheets still work, decorative motion is removed', async ({
   await expect(sheet.getByTestId('amount-display')).toContainText('7');
   await page.keyboard.press('Escape');
   await expect(sheet).toBeHidden();
-  // CSS animations (skeleton shimmer) are disabled under reduced motion.
   const anim = await page.evaluate(() => {
     const el = document.createElement('div');
     el.className = 'skeleton';
@@ -34,7 +33,7 @@ test('glass falls back to solid surfaces when transparency is reduced', async ({
   await page.getByTestId('reduce-transparency').check();
   const after = await tabbar.evaluate((el) => ({ filter: getComputedStyle(el).backdropFilter, bg: getComputedStyle(el).backgroundColor }));
   expect(after.filter).toBe('none');
-  expect(after.bg).not.toMatch(/rgba\(.*, 0?\.\d+\)/); // opaque
+  expect(after.bg).not.toMatch(/rgba\(.*, 0?\.\d+\)/);
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-transparency', 'reduced');
   await page.getByTestId('reduce-transparency').uncheck();
@@ -56,14 +55,12 @@ test('theme preference switches and persists', async ({ page }, info) => {
 
 test('first screens are visible immediately (never waiting on deferred animation code)', async ({ browser, page }, info) => {
   test.skip(info.project.name !== 'mobile', 'mobile');
-  // Signed-out: the sign-in screen.
   const fresh = await browser.newContext();
   const auth = await fresh.newPage();
   await auth.goto('/');
   await auth.getByLabel('Email').waitFor();
   expect(await auth.evaluate(() => getComputedStyle(document.querySelector('main')!).opacity)).toBe('1');
   await fresh.close();
-  // Signed-in: a cold load straight into a page.
   await signIn(page);
   await page.goto('/accounts');
   await page.getByText('Everything you hold and owe', { exact: false }).waitFor();

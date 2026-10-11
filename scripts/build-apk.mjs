@@ -1,7 +1,3 @@
-// Builds the signed Android APK: web build (--mode native) → cap sync → Gradle assembleRelease.
-// Toolchain lives outside the repo (no spaces in the path): KOSH_ANDROID_HOME
-// (default D:\KoshAndroid) holds jdk-21, android-sdk, gradle-home and the release keystore.
-// Output: dist-apk/Kosh-<version>.apk
 import { execSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
@@ -25,7 +21,6 @@ for (const dir of ['jdk-21', 'android-sdk']) {
   }
 }
 
-// One-time release keystore (kept outside the repo).
 const keystore = join(home, 'kosh-release.jks');
 const props = 'android/keystore.properties';
 if (!existsSync(keystore)) {
@@ -38,10 +33,8 @@ if (!existsSync(props)) {
   const pass = readFileSync(join(home, 'keystore-password.txt'), 'utf8').trim();
   writeFileSync(props, `storeFile=${keystore.split('\\').join('/')}\nstorePassword=${pass}\nkeyAlias=kosh\nkeyPassword=${pass}\n`);
 }
-// local.properties uses Java properties escaping: forward slashes avoid backslash escapes entirely.
 writeFileSync('android/local.properties', `sdk.dir=${join(home, 'android-sdk').split('\\').join('/')}\n`);
 
-// Android installs an update only if versionCode increases: use the commit count (monotonic).
 const version = JSON.parse(readFileSync('package.json', 'utf8')).version;
 const versionCode = Number(execSync('git rev-list --count HEAD', { encoding: 'utf8' }).trim()) || 1;
 const gradleFile = 'android/app/build.gradle';

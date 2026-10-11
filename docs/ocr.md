@@ -27,7 +27,7 @@ sparse-text mode (all four: 50%), and a two-pass union of both (no gain, slower)
 photos (`BLUR_MAX = 0.28`), offering Retake or "Use this photo". It is calibrated on synthetic
 images only and may need tuning on real devices.
 
-**Honest limits:**
+**Limits:**
 - Embossed digits, foil and glossy finishes on real cards read worse than these synthetic images.
 - Network and type are often printed as logos rather than text. Network then comes from the
   number's prefix when the number was read.

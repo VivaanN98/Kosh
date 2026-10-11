@@ -1,7 +1,3 @@
-/**
- * Demo Mode repository: the Repository contract over IndexedDB, using the TypeScript ledger
- * engine. Every method mirrors its Postgres RPC counterpart (same validation, same error codes).
- */
 import { addDays, todayIST, type IsoDate } from '@/lib/dates';
 import { uuid } from '@/lib/ids';
 import { MAX_ABS_PAISE, type Paise } from '@/lib/money';
@@ -10,7 +6,7 @@ import { buildPostings, checkDate, hasCardLikeNumber, validateTransaction, type 
 import { isScheduled } from '@/domain/recurring';
 import { isStatementDate, minimumDue, statementPeriod } from '@/domain/statements';
 import { normalizeLast4, sanitizeArtwork } from '@/domain/cards/artwork';
-import { SEED_ACCOUNTS, SEED_CARDS, SEED_CATEGORIES } from '@/domain/seed';
+import { SEED_CATEGORIES } from '@/domain/seed';
 import type {
   Account,
   Budget,
@@ -33,6 +29,7 @@ import type {
 import { CARD_NETWORKS, CARD_TYPES, RECURRING_TYPES } from '@/domain/types';
 import type {
   AccountPatch,
+  AssistantReply,
   BudgetInput,
   CategoryInput,
   ContributionInput,
@@ -86,7 +83,7 @@ function checkColor(c: string | null | undefined): string | null {
   return c;
 }
 
-export interface DemoOptions {
+interface DemoOptions {
   today?: () => IsoDate;
 }
 
@@ -100,10 +97,6 @@ export class DemoRepository implements Repository {
   ) {
     this.today = opts.today ?? (() => todayIST());
   }
-
-  // -------------------------------------------------------------------------
-  // Lookups
-  // -------------------------------------------------------------------------
 
   private lookup(w: Writer): LedgerLookup {
     return {
@@ -130,10 +123,6 @@ export class DemoRepository implements Repository {
     if (!a || a.isSystem) fail('ACCOUNT_NOT_FOUND');
     return a;
   }
-
-  // -------------------------------------------------------------------------
-  // Ledger core (mirrors private.insert_tx / apply_update / soft_delete_tx / post_entries)
-  // -------------------------------------------------------------------------
 
   private postEntries(w: Writer, t: Transaction) {
     w.delete('entries', `${t.id}:0`);
@@ -189,10 +178,6 @@ export class DemoRepository implements Repository {
     this.postEntries(w, saved);
   }
 
-  // -------------------------------------------------------------------------
-  // Setup + profile
-  // -------------------------------------------------------------------------
-
   async ensureSetup(): Promise<void> {
     await this.store.mutate((w) => {
       const meta = w.get<MetaRow>('meta', 'seed_version');
@@ -222,22 +207,6 @@ export class DemoRepository implements Repository {
           });
         }
       }
-      const acctIds = new Map<string, Uuid>();
-      SEED_ACCOUNTS.forEach((a, i) => {
-        const id = uuid();
-        acctIds.set(a.key, id);
-        w.put<Account>('accounts', {
-          id, name: a.name, kind: 'bank', isSystem: false, institution: a.institution, color: a.color, icon: null,
-          sortOrder: i + 1, archivedAt: null, reconciledAt: null, reconciledBalance: null, seedKey: a.key, createdAt: stamp,
-        });
-      });
-      SEED_CARDS.forEach((c, i) => {
-        w.put<PaymentCard>('cards', {
-          id: uuid(), accountId: acctIds.get(c.accountKey)!, issuer: c.issuer, network: c.network, cardType: c.cardType,
-          displayName: c.displayName, last4: null, artwork: c.artwork, source: 'seed', sortOrder: i + 1, seedKey: c.key,
-          archivedAt: null, createdAt: stamp,
-        });
-      });
       w.put<MetaRow>('meta', { id: 'seed_version', value: 1 });
     });
   }
@@ -255,10 +224,6 @@ export class DemoRepository implements Repository {
       w.put('meta', { id: 'profile', displayName, currency: 'INR', timezone: 'Asia/Kolkata' } as never);
     });
   }
-
-  // -------------------------------------------------------------------------
-  // Accounts
-  // -------------------------------------------------------------------------
 
   async listAccounts(): Promise<Account[]> {
     return this.store
@@ -356,10 +321,6 @@ export class DemoRepository implements Repository {
     });
   }
 
-  // -------------------------------------------------------------------------
-  // Transactions
-  // -------------------------------------------------------------------------
-
   async listTransactions(q: TransactionQuery = {}): Promise<Transaction[]> {
     return this.store
       .all<Transaction>('transactions')
@@ -430,10 +391,6 @@ export class DemoRepository implements Repository {
       .filter((e) => (!q.from || e.occurredOn >= q.from) && (!q.to || e.occurredOn <= q.to) && (!q.accountId || e.accountId === q.accountId));
   }
 
-  // -------------------------------------------------------------------------
-  // Categories
-  // -------------------------------------------------------------------------
-
   async listCategories(): Promise<Category[]> {
     return this.store.all<Category>('categories').sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
   }
@@ -483,10 +440,6 @@ export class DemoRepository implements Repository {
     });
   }
 
-  // -------------------------------------------------------------------------
-  // Budgets
-  // -------------------------------------------------------------------------
-
   async listBudgets(): Promise<Budget[]> {
     return this.store.all<Budget>('budgets');
   }
@@ -511,10 +464,6 @@ export class DemoRepository implements Repository {
   async deleteBudget(id: Uuid): Promise<void> {
     await this.store.mutate((w) => w.delete('budgets', id));
   }
-
-  // -------------------------------------------------------------------------
-  // Goals
-  // -------------------------------------------------------------------------
 
   async listGoals(): Promise<SavingsGoal[]> {
     return this.store.all<SavingsGoal>('goals').sort((a, b) => a.createdAt.localeCompare(b.createdAt));
@@ -668,10 +617,6 @@ export class DemoRepository implements Repository {
     });
   }
 
-  // -------------------------------------------------------------------------
-  // Recurring (mirrors recurring_rules_check, materialize/confirm/skip)
-  // -------------------------------------------------------------------------
-
   async listRecurringRules(): Promise<RecurringRule[]> {
     return this.store.all<RecurringRule>('rules').sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   }
@@ -780,7 +725,6 @@ export class DemoRepository implements Repository {
       return { occ, post: r.mode === 'automatic' };
     });
     if (!result.post) return result.occ;
-    // Separate unit of work: if posting fails the occurrence stays pending (same as the SQL sub-block).
     try {
       return await this.store.mutate((w) => {
         const r = w.get<RecurringRule>('rules', ruleId)!;
@@ -811,10 +755,6 @@ export class DemoRepository implements Repository {
       return w.put<RecurringOccurrence>('occurrences', { ...o, status: 'skipped', resolvedAt: now() });
     });
   }
-
-  // -------------------------------------------------------------------------
-  // Subscriptions
-  // -------------------------------------------------------------------------
 
   async listSubscriptions(): Promise<Subscription[]> {
     return this.store.all<Subscription>('subscriptions').sort((a, b) => a.createdAt.localeCompare(b.createdAt));
@@ -859,10 +799,6 @@ export class DemoRepository implements Repository {
     if (!s) fail('NOT_FOUND');
     await this.deleteRecurringRule(s.recurringRuleId);
   }
-
-  // -------------------------------------------------------------------------
-  // Cards
-  // -------------------------------------------------------------------------
 
   async listPaymentCards(): Promise<PaymentCard[]> {
     return this.store.all<PaymentCard>('cards').sort((a, b) => a.sortOrder - b.sortOrder || a.createdAt.localeCompare(b.createdAt));
@@ -971,6 +907,10 @@ export class DemoRepository implements Repository {
         statementBalance: balance === 0 ? 0 : balance, minimumDue: minimumDue(balance, s), createdAt: now(),
       });
     });
+  }
+
+  async askAssistant(): Promise<AssistantReply> {
+    return fail('UNKNOWN', 'The assistant needs a Supabase backend.');
   }
 }
 

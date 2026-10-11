@@ -1,7 +1,3 @@
-/**
- * The assistant's read-only SQL tools: numbers reconcile with the ledger metrics, results are
- * scoped to the caller by RLS, and no card data is ever exposed.
- */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { balancesByAccount, netPosition, totalSpending } from '@/domain/ledger/metrics';
 import { monthEnd, monthKey, monthStart, todayIST } from '@/lib/dates';

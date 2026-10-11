@@ -14,7 +14,6 @@ import {
 
 describe('dates', () => {
   it('resolves today in Asia/Kolkata regardless of device zone', () => {
-    // 2026-01-31 20:00 UTC is 2026-02-01 01:30 IST
     expect(todayIST(new Date('2026-01-31T20:00:00Z'))).toBe('2026-02-01');
     expect(todayIST(new Date('2026-01-31T18:29:59Z'))).toBe('2026-01-31');
   });
@@ -40,7 +39,7 @@ describe('dates', () => {
     expect(addDays('2026-02-28', 1)).toBe('2026-03-01');
     expect(addDays('2024-02-28', 1)).toBe('2024-02-29');
     expect(diffDays('2026-03-01', '2026-02-01')).toBe(28);
-    expect(dayOfWeek('2026-10-10')).toBe(6); // Saturday
+    expect(dayOfWeek('2026-10-10')).toBe(6);
   });
 
   it('iterates months', () => {

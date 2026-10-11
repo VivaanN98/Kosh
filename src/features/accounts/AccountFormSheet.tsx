@@ -54,7 +54,6 @@ export function AccountFormSheet({ open, onClose, onCreated }: { open: boolean; 
               name: v.name,
               kind: v.kind,
               institution: v.institution || null,
-              // A card's outstanding is debt: store it as a negative ledger balance.
               openingBalance: v.kind === 'credit_card' ? -opening : opening,
               openingOn: v.openingOn,
               statementDay: v.kind === 'credit_card' && v.statementDay ? Number(v.statementDay) : undefined,

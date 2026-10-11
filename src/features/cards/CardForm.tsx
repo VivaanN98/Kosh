@@ -1,7 +1,3 @@
-/**
- * Card details + template artwork editor. Used by "Enter Manually", by editing, and as the review
- * step of scanning (with `uncertain` fields flagged for confirmation).
- */
 import { useMemo, useState } from 'react';
 import { AlertTriangle, Check } from 'lucide-react';
 import { SelectField, TextField } from '@/components/ui/bits';
@@ -25,16 +21,12 @@ export interface CardDraft {
   last4: string;
   accountId: string;
   artwork: CardArtwork;
-  /**
-   * Scanned face picture (number, expiry and name removed), in memory until saved to this device.
-   * undefined = keep whatever the card already has; null = use the template (removes a stored one).
-   */
   face?: Blob | null;
 }
 
 export type UncertainField = 'issuer' | 'network' | 'cardType' | 'last4';
 
-export const PALETTES: { name: string; colors: [string, string, string]; template: CardArtwork['template'] }[] = [
+const PALETTES: { name: string; colors: [string, string, string]; template: CardArtwork['template'] }[] = [
   { name: 'Midnight', colors: ['#14161c', '#2a2f3a', '#4a5160'], template: 'gradient' },
   { name: 'Sapphire', colors: ['#1d3f8f', '#2f6fd6', '#7fb2ff'], template: 'gradient' },
   { name: 'Graphite', colors: ['#3a3f47', '#8c939c', '#d9dde2'], template: 'metal' },
@@ -77,7 +69,12 @@ export function CardForm({
       ),
     [d.activeAccounts, draft.cardType],
   );
-  const accountValid = draft.accountId === 'new-credit' ? draft.cardType === 'credit' : eligible.some((a) => a.id === draft.accountId);
+  const accountValid =
+    draft.accountId === 'new-credit'
+      ? draft.cardType === 'credit'
+      : draft.accountId === 'new-bank'
+        ? draft.cardType === 'debit'
+        : eligible.some((a) => a.id === draft.accountId);
   const last4Valid = draft.last4 === '' || /^\d{4}$/.test(draft.last4);
   const textValid = !hasCardLikeNumber(draft.issuer) && !hasCardLikeNumber(draft.displayName);
   const pending = uncertain.filter((f) => !confirmed.has(f));
@@ -97,6 +94,9 @@ export function CardForm({
       let accountId = draft.accountId;
       if (accountId === 'new-credit') {
         const acct = await store.run((repo) => repo.createAccount({ name: `${draft.issuer.trim()} Credit Card`.slice(0, 60), kind: 'credit_card', institution: draft.issuer.trim() }, acctKey), 'accounts');
+        accountId = acct.id;
+      } else if (accountId === 'new-bank') {
+        const acct = await store.run((repo) => repo.createAccount({ name: `${draft.issuer.trim()} Account`.slice(0, 60), kind: 'bank', institution: draft.issuer.trim() }, acctKey), 'accounts');
         accountId = acct.id;
       }
       const artwork = sanitizeArtwork(draft.artwork);
@@ -130,7 +130,6 @@ export function CardForm({
   const draftFace = draft.face ? faceUrl(draft.face) : null;
   const face = draft.face === undefined ? storedFace : draftFace;
   const preview = { ...draft, face, displayName: draft.displayName || null, last4: /^\d{4}$/.test(draft.last4) ? draft.last4 : null };
-  // Lets the user switch back to the scanned picture after choosing the template.
   const [scanned] = useState(initial.face ?? null);
 
   return (
@@ -164,7 +163,7 @@ export function CardForm({
             data-testid="card-issuer"
           />
         </label>
-        <label className="block">
+        <label className="block min-w-0">
           <span className="mb-1.5 block text-[13px] font-medium text-text-2">Network {flag('network')}</span>
           <select
             value={draft.network}
@@ -183,7 +182,7 @@ export function CardForm({
             ))}
           </select>
         </label>
-        <label className="block">
+        <label className="block min-w-0">
           <span className="mb-1.5 block text-[13px] font-medium text-text-2">Last 4 (optional) {flag('last4')}</span>
           <input
             value={draft.last4}
@@ -234,6 +233,7 @@ export function CardForm({
           </option>
         ))}
         {draft.cardType === 'credit' && <option value="new-credit">+ New credit card account</option>}
+        {draft.cardType === 'debit' && <option value="new-bank">+ New bank account</option>}
       </SelectField>
 
       {!face && <ArtworkEditor artwork={draft.artwork} onChange={(a) => set('artwork', a)} />}
@@ -250,7 +250,6 @@ export function CardForm({
   );
 }
 
-/** One URL per scanned picture (≈40 KB, at most one per scan), released when the page unloads. */
 const faceUrls = new WeakMap<Blob, string>();
 function faceUrl(blob: Blob): string {
   let url = faceUrls.get(blob);
@@ -261,16 +260,16 @@ function faceUrl(blob: Blob): string {
   return url;
 }
 
-export function ArtworkEditor({ artwork, onChange }: { artwork: CardArtwork; onChange: (a: CardArtwork) => void }) {
+function ArtworkEditor({ artwork, onChange }: { artwork: CardArtwork; onChange: (a: CardArtwork) => void }) {
   const set = (patch: Partial<CardArtwork>) => {
     const next = { ...artwork, ...patch };
     if (patch.colors) next.textTone = textToneFor(next.colors.filter(Boolean) as string[]);
     onChange(next);
   };
   return (
-    <fieldset className="rounded-[16px] border border-line p-3">
+    <fieldset className="min-w-0 rounded-[16px] border border-line p-3">
       <legend className="px-1 text-[13px] font-medium text-text-2">Artwork</legend>
-      <div className="scroll-clean -mx-1 flex gap-2 overflow-x-auto px-1 pb-1" role="radiogroup" aria-label="Colour palette">
+      <div className="scroll-clean -mx-1 flex min-w-0 gap-2 overflow-x-auto px-1 py-1" role="radiogroup" aria-label="Colour palette">
         {PALETTES.map((p) => {
           const active = p.colors.every((c, i) => artwork.colors[i] === c);
           return (
@@ -288,9 +287,9 @@ export function ArtworkEditor({ artwork, onChange }: { artwork: CardArtwork; onC
           );
         })}
       </div>
-      <div className="mt-3 grid grid-cols-3 gap-2">
+      <div className="mt-3 grid grid-cols-1 gap-2 min-[400px]:grid-cols-3">
         {[0, 1, 2].map((i) => (
-          <label key={i} className="flex min-h-[44px] items-center gap-2 rounded-[12px] bg-surface-2 px-2 text-[12px] text-text-2">
+          <label key={i} className="flex min-h-[44px] min-w-0 items-center gap-2 rounded-[12px] bg-surface-2 px-3 text-[12px] text-text-2 min-[400px]:px-2">
             <input
               type="color"
               value={artwork.colors[i] ?? artwork.colors[1]}
@@ -299,14 +298,14 @@ export function ArtworkEditor({ artwork, onChange }: { artwork: CardArtwork; onC
                 colors[i] = e.target.value;
                 set({ colors });
               }}
-              className="h-7 w-7 cursor-pointer rounded border-0 bg-transparent"
+              className="h-7 w-7 shrink-0 cursor-pointer rounded border-0 bg-transparent"
               aria-label={`Colour ${i + 1}`}
             />
-            Colour {i + 1}
+            <span className="truncate">Colour {i + 1}</span>
           </label>
         ))}
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-2">
+      <div className="mt-3 grid grid-cols-1 gap-x-2 gap-y-3 min-[400px]:grid-cols-2">
         <SelectField label="Finish" value={artwork.template} onChange={(e) => set({ template: e.target.value as CardArtwork['template'] })}>
           <option value="gradient">Gradient</option>
           <option value="solid">Solid</option>
@@ -335,6 +334,7 @@ export function ArtworkEditor({ artwork, onChange }: { artwork: CardArtwork; onC
         <Segmented
           label="Text colour"
           size="sm"
+          className="w-full min-w-0 min-[400px]:w-auto min-[400px]:flex-1"
           value={artwork.textTone}
           onChange={(v) => onChange({ ...artwork, textTone: v })}
           options={[
@@ -345,6 +345,7 @@ export function ArtworkEditor({ artwork, onChange }: { artwork: CardArtwork; onC
         <Segmented
           label="Surface"
           size="sm"
+          className="w-full min-w-0 min-[400px]:w-auto min-[400px]:flex-1"
           value={artwork.finish}
           onChange={(v) => onChange({ ...artwork, finish: v })}
           options={[

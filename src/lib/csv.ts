@@ -1,8 +1,3 @@
-/**
- * CSV export. Columns are documented in docs/database.md#csv-export and asserted by tests.
- * Amounts are plain decimal rupees ("1234.50"). Text cells that could be read as spreadsheet
- * formulas are prefixed with an apostrophe (CSV injection guard).
- */
 import { toDecimalString } from './money';
 import type { Snapshot } from '@/data/store';
 import type { Transaction } from '@/domain/types';
@@ -69,7 +64,6 @@ export function transactionsToCsv(snap: Pick<Snapshot, 'accounts' | 'categories'
 }
 
 export function downloadTransactionsCsv(snap: Pick<Snapshot, 'accounts' | 'categories' | 'cards'>, transactions: readonly Transaction[], name = 'kosh-transactions') {
-  // BOM so Excel opens UTF-8 (₹, names) correctly.
   const blob = new Blob(['﻿', transactionsToCsv(snap, transactions)], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

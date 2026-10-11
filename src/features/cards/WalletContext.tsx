@@ -1,8 +1,3 @@
-/**
- * Shared wallet state for every card variant: which card is selected/expanded, the add-card flow,
- * and the card that was just added (so each variant can animate it in). Lives ABOVE the variants,
- * so switching variants keeps the selection.
- */
 import { createContext, useCallback, useContext, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
 import type { Uuid } from '@/domain/types';
 
@@ -15,31 +10,27 @@ export const VARIANTS: { id: CardVariant; label: string; blurb: string }[] = [
 
 const VARIANT_KEY = 'kosh.cardVariant';
 
-export function readVariant(): CardVariant {
+function readVariant(): CardVariant {
   try {
     const v = localStorage.getItem(VARIANT_KEY);
     if (v === 'stacked' || v === 'orbit' || v === 'carousel') return v;
   } catch {
-    /* default */
   }
   return DEFAULT_VARIANT;
 }
 
 const VARIANT_EVENT = 'kosh:card-variant';
 
-/** Default card style: Stacked Wallet — calmest, every face readable, scales best with many cards. */
 export const DEFAULT_VARIANT: CardVariant = 'stacked';
 
-export function saveVariant(v: CardVariant) {
+function saveVariant(v: CardVariant) {
   try {
     localStorage.setItem(VARIANT_KEY, v);
   } catch {
-    /* preference only */
   }
   window.dispatchEvent(new Event(VARIANT_EVENT));
 }
 
-/** The user's card style (Settings → Card style), kept in sync across screens and tabs. */
 export function useCardVariant(): [CardVariant, (v: CardVariant) => void] {
   const variant = useSyncExternalStore(
     (cb) => {

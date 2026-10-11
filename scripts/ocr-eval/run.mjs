@@ -1,5 +1,3 @@
-// Runs the OCR evaluation page in headless Chromium and writes docs/ocr-evaluation.json + a summary.
-// Usage: node scripts/ocr-eval/run.mjs [engine-prefix]
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';

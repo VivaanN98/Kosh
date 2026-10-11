@@ -36,6 +36,7 @@ export default tseslint.config(
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/consistent-type-imports': 'error',
+      'no-empty': ['error', { allowEmptyCatch: true }],
       'no-restricted-syntax': [
         'error',
         {

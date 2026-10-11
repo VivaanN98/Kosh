@@ -7,7 +7,6 @@ import { AddCardSheet } from './AddCardSheet';
 import { Wallet } from './Wallet';
 import { useCardVariant, WalletProvider } from './WalletContext';
 
-/** Cards inside Accounts, shown in the style chosen in Settings → Card style. */
 export function CardsSection() {
   const snap = useSnapshot();
   const cards = useMemo(() => snap.cards.filter((c) => !c.archivedAt), [snap.cards]);

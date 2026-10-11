@@ -1,8 +1,3 @@
-/**
- * Recurring schedules. `isScheduled` mirrors private.is_scheduled in SQL; the server rejects any
- * date this module would not produce, and a unique (rule_id, due_on) constraint makes
- * materialisation idempotent.
- */
 import {
   addDays,
   addMonthsAnchored,
@@ -43,7 +38,6 @@ export function isScheduled(rule: ScheduleRule, date: IsoDate): boolean {
   }
 }
 
-/** The k-th scheduled date candidate (k ≥ 0); may precede startOn for monthly/yearly anchors. */
 function nth(rule: ScheduleRule, k: number): IsoDate {
   const interval = Math.max(1, rule.interval);
   switch (rule.frequency) {
@@ -58,7 +52,6 @@ function nth(rule: ScheduleRule, k: number): IsoDate {
   }
 }
 
-/** Scheduled dates in [from, to], honouring startOn, endOn and activeFrom. */
 export function occurrencesBetween(rule: ScheduleRule, from: IsoDate, to: IsoDate, limit = 1000): IsoDate[] {
   const out: IsoDate[] = [];
   const lower = [rule.startOn, from, rule.activeFrom ?? rule.startOn].sort().at(-1)!;
@@ -95,13 +88,12 @@ export function describeSchedule(rule: ScheduleRule): string {
   return every;
 }
 
-export function ordinal(n: number): string {
+function ordinal(n: number): string {
   const s = ['th', 'st', 'nd', 'rd'];
   const v = n % 100;
   return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`;
 }
 
-/** Monthly-equivalent cost in paise (for subscription totals), integer-rounded. */
 export function monthlyEquivalent(amount: number, frequency: Frequency, interval: number): number {
   const n = Math.max(1, interval);
   switch (frequency) {

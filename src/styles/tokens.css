@@ -1,13 +1,7 @@
-/*
- * Kosh design tokens — the single source of colour, type, radius, elevation and glass.
- * Dark: obsidian + charcoal. Light: warm white. Accents (mint, periwinkle) used sparingly.
- * Text colours meet WCAG AA on their intended surfaces in both themes.
- */
 
 :root {
   color-scheme: light;
 
-  /* Surfaces */
   --bg: #f6f4ef;
   --bg-elevated: #fbfaf7;
   --surface: #ffffff;
@@ -16,18 +10,15 @@
   --sunken: #eceae4;
   --overlay: rgba(22, 21, 18, 0.32);
 
-  /* Lines */
   --line: rgba(24, 22, 18, 0.08);
   --line-strong: rgba(24, 22, 18, 0.14);
   --highlight: rgba(255, 255, 255, 0.9);
 
-  /* Text (AA on --bg and --surface) */
   --text: #17171a;
   --text-2: #55585f;
   --text-3: #64676e;
   --text-inverse: #f6f4ef;
 
-  /* Accents */
   --mint: #167a58;
   --mint-soft: #d9f2e7;
   --on-mint: #ffffff;
@@ -36,29 +27,24 @@
   --peri-soft: #e3e6fa;
   --peri-glow: rgba(110, 124, 230, 0.14);
 
-  /* Semantic */
   --positive: #157a52;
   --negative: #b4372c;
   --negative-soft: #fbe3df;
   --warning: #8f5b06;
   --warning-soft: #f9ecd2;
 
-  /* Focus */
   --focus: #4c58b8;
 
-  /* Glass */
   --glass-bg: rgba(255, 255, 255, 0.72);
   --glass-solid: #fbfaf7;
   --glass-border: rgba(255, 255, 255, 0.7);
   --glass-blur: 22px;
   --glass-saturate: 170%;
 
-  /* Elevation */
   --shadow-1: 0 1px 2px rgba(24, 22, 18, 0.05), 0 1px 1px rgba(24, 22, 18, 0.03);
   --shadow-2: 0 8px 24px -8px rgba(24, 22, 18, 0.14), 0 2px 6px rgba(24, 22, 18, 0.05);
   --shadow-3: 0 24px 64px -16px rgba(24, 22, 18, 0.28), 0 4px 12px rgba(24, 22, 18, 0.06);
 
-  /* Shape */
   --radius-xs: 8px;
   --radius-sm: 12px;
   --radius-md: 16px;
@@ -66,21 +52,16 @@
   --radius-xl: 28px;
   --radius-card: 22px;
 
-  /* Type */
   --font-ui: 'Geist', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  /* One family: headings are the UI face at medium weight (simple, friendly, no serif). */
   --font-display: var(--font-ui);
   --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-  /* Layout */
   --sidebar-w: 88px;
   --tabbar-h: 64px;
   --content-max: 1080px;
-  /* Capacitor (Android app) injects --safe-area-inset-*; browsers use env(). */
   --safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
   --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
 
-  /* Colour tiles (Home accounts): white text passes AA on the lighter stop (4.5:1 or better). */
   --tile-1-from: #2b6bd9;
   --tile-1-to: #1d49a6;
   --tile-2-from: #c93a2a;
@@ -94,7 +75,6 @@
   --tile-6-from: #5252cc;
   --tile-6-to: #36368f;
 
-  /* Charts: validated categorical palette (dataviz reference; fixed order, never cycled). */
   --chart-1: #2a78d6;
   --chart-2: #eb6834;
   --chart-3: #1baf7a;
@@ -200,10 +180,6 @@
   --chart-grid: rgba(255, 255, 255, 0.07);
 }
 
-/*
- * Increase Contrast (OS setting): every text and line token gets a stronger variant, and glass
- * becomes opaque. Must stay last so it wins over the theme blocks above at equal specificity.
- */
 @media (prefers-contrast: more) {
   :root {
     --text-2: #34373d;

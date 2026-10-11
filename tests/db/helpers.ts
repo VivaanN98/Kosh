@@ -1,7 +1,3 @@
-/**
- * Supabase integration helpers. Requires `npm run db:start` and `.env.local`
- * (node scripts/write-local-env.mjs). Uses the service role ONLY to create throwaway users.
- */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { SupabaseRepository } from '@/data/supabase/supabaseRepository';
 

@@ -10,7 +10,6 @@ describe.skipIf(!dbConfigured)('ledger vectors — Supabase adapter (Postgres RP
       const user = await createTestUser();
       try {
         await runVector(user.repo, vector);
-        // The SQL view must agree with balances derived from entries in TypeScript.
         const entries = await user.repo.listLedgerEntries();
         const ts = balancesByAccount(entries);
         const { data, error } = await user.client.from('account_balances').select('account_id, balance_paise');

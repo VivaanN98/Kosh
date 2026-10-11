@@ -1,5 +1,3 @@
-// Types for vite-plugin-pwa's virtual module (the package's own declaration isn't reachable via
-// its exports map under moduleResolution: bundler).
 declare module 'virtual:pwa-register' {
   export interface RegisterSWOptions {
     immediate?: boolean;

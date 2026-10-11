@@ -3,16 +3,11 @@ import type { Paise } from '@/lib/money';
 
 export type Uuid = string;
 
-/** User-facing account kinds. */
 export const USER_ACCOUNT_KINDS = ['cash', 'bank', 'credit_card', 'goal'] as const;
-export type UserAccountKind = (typeof USER_ACCOUNT_KINDS)[number];
-/** Hidden nominal accounts, one of each per user. */
+type UserAccountKind = (typeof USER_ACCOUNT_KINDS)[number];
 export const SYSTEM_ACCOUNT_KINDS = ['income', 'expense', 'equity'] as const;
-export type SystemAccountKind = (typeof SYSTEM_ACCOUNT_KINDS)[number];
+type SystemAccountKind = (typeof SYSTEM_ACCOUNT_KINDS)[number];
 export type AccountKind = UserAccountKind | SystemAccountKind;
-
-export const ASSET_KINDS: readonly AccountKind[] = ['cash', 'bank', 'goal'];
-export const LIQUID_KINDS: readonly AccountKind[] = ['cash', 'bank'];
 
 export interface Account {
   id: Uuid;
@@ -42,13 +37,11 @@ export const TRANSACTION_TYPES = [
 ] as const;
 export type TransactionType = (typeof TRANSACTION_TYPES)[number];
 
-/** Types that move money between two of the user's accounts and never count as income/expense. */
 export const TRANSFER_LIKE: readonly TransactionType[] = ['transfer', 'card_payment', 'goal_transfer'];
 
 export interface Transaction {
   id: Uuid;
   type: TransactionType;
-  /** Positive for every type except opening_balance/adjustment, which carry a signed ledger delta. */
   amount: Paise;
   occurredOn: IsoDate;
   accountId: Uuid;
@@ -65,7 +58,6 @@ export interface Transaction {
   updatedAt: string;
 }
 
-/** What a caller supplies to post or edit a transaction. */
 export interface TransactionInput {
   type: TransactionType;
   amount: Paise;
@@ -84,7 +76,6 @@ export interface LedgerEntry {
   transactionId: Uuid;
   accountId: Uuid;
   categoryId: Uuid | null;
-  /** Debit-positive signed amount. */
   amount: Paise;
   occurredOn: IsoDate;
 }
@@ -105,7 +96,6 @@ export interface Category {
 
 export interface Budget {
   id: Uuid;
-  /** null = overall monthly budget. */
   categoryId: Uuid | null;
   amount: Paise;
   warnAtPct: number;
@@ -120,7 +110,6 @@ export interface SavingsGoal {
   target: Paise;
   deadline: IsoDate | null;
   mode: GoalMode;
-  /** account mode: the dedicated goal account. earmark mode: optional account holding the money. */
   accountId: Uuid | null;
   color: string | null;
   icon: string | null;
@@ -133,7 +122,6 @@ export interface GoalContribution {
   goalId: Uuid;
   amount: Paise;
   contributedOn: IsoDate;
-  /** earmark: account the money sits in (optional). account mode: source of the transfer. */
   accountId: Uuid | null;
   transactionId: Uuid | null;
   note: string | null;
@@ -161,16 +149,14 @@ export interface RecurringRule {
   interval: number;
   startOn: IsoDate;
   endOn: IsoDate | null;
-  /** Day of month for monthly/yearly schedules (1-31, clamped to month length). */
   anchorDay: number | null;
   mode: RecurringMode;
   status: RecurringStatus;
-  /** Set when a paused rule resumes; dates before it are never back-filled. */
   activeFrom: IsoDate | null;
   createdAt: string;
 }
 
-export type OccurrenceStatus = 'pending' | 'posted' | 'skipped';
+type OccurrenceStatus = 'pending' | 'posted' | 'skipped';
 
 export interface RecurringOccurrence {
   id: Uuid;
@@ -194,12 +180,8 @@ export const CARD_NETWORKS = ['visa', 'mastercard', 'rupay', 'amex', 'diners', '
 export type CardNetwork = (typeof CARD_NETWORKS)[number];
 export const CARD_TYPES = ['debit', 'credit', 'prepaid'] as const;
 export type CardType = (typeof CARD_TYPES)[number];
-export type CardSource = 'seed' | 'manual' | 'scan';
+type CardSource = 'seed' | 'manual' | 'scan';
 
-/**
- * Sanitized, template-based card artwork. Contains only visual parameters; never card text,
- * numbers or photos. Validated by `domain/cards/artwork.ts` and a database check.
- */
 export interface CardArtwork {
   version: 1;
   template: 'gradient' | 'solid' | 'metal' | 'mesh';
@@ -233,11 +215,8 @@ export interface PaymentCard {
 export interface CreditCardSettings {
   accountId: Uuid;
   creditLimit: Paise | null;
-  /** Statement closes on this day of month (clamped). */
   statementDay: number;
-  /** Payment due this many days after the statement date. */
   dueDays: number;
-  /** Minimum due as basis points of the statement balance, with a floor. */
   minDueBps: number;
   minDueFloor: Paise;
 }
@@ -248,7 +227,6 @@ export interface CardStatement {
   periodStart: IsoDate;
   periodEnd: IsoDate;
   dueOn: IsoDate;
-  /** Debt as of periodEnd (negative = credit balance). */
   statementBalance: Paise;
   minimumDue: Paise;
   createdAt: string;

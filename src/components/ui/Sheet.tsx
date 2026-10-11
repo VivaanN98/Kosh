@@ -1,9 +1,3 @@
-/**
- * Sheet: a draggable bottom sheet on phones, a centred modal on wider screens.
- * - Spring physics from motion/springs; dismiss by swiping down (distance or velocity).
- * - Only transform + opacity animate. Reduced motion → fade only (MotionConfig + opacity).
- * - Accessible dialog: aria-modal, labelled, focus trapped, Escape closes, focus restored.
- */
 import { AnimatePresence, m, useDragControls, useMotionValue, useTransform, type PanInfo } from 'motion/react';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -12,17 +6,14 @@ import { springs } from '@/motion/springs';
 import { project } from '@/motion/gesture';
 import { useMediaQuery } from '@/lib/useMediaQuery';
 
-export interface SheetProps {
+interface SheetProps {
   open: boolean;
   onClose: () => void;
   title: ReactNode;
-  /** Visually hide the title (still announced). */
   hideTitle?: boolean;
   children: ReactNode;
   footer?: ReactNode;
-  /** Desktop modal width. */
   width?: number;
-  /** Element to focus on open (selector within the sheet). */
   initialFocus?: string;
   testId?: string;
 }
@@ -41,12 +32,10 @@ function SheetPanel({ onClose, title, hideTitle, children, footer, width = 480, 
   const drag = useDragControls();
   const [dragging, setDragging] = useState(false);
 
-  // Focus management + Escape + scroll lock.
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     const panel = panelRef.current;
     const wanted = initialFocus ? panel?.querySelector<HTMLElement>(initialFocus) : null;
-    // A disabled element can't take focus; fall back to the dialog itself so focus never stays behind it.
     const target = wanted && !(wanted as HTMLButtonElement).disabled ? wanted : panel;
     target?.focus({ preventScroll: true });
     const { overflow } = document.body.style;
@@ -78,11 +67,9 @@ function SheetPanel({ onClose, title, hideTitle, children, footer, width = 480, 
     };
   }, [onClose, initialFocus]);
 
-  // The scrim lightens 1:1 as the sheet is dragged down, so feedback is continuous, not only at release.
   const y = useMotionValue(0);
   const scrimOpacity = useTransform(y, (v) => (typeof v === 'number' ? Math.max(0.15, 1 - Math.max(0, v) / 480) : 1));
 
-  // Decide from where the flick is heading (projected end), not where the finger lifted.
   const onDragEnd = (_: unknown, info: PanInfo) => {
     setDragging(false);
     if (info.offset.y + project(info.velocity.y, 0.99) > 140) onClose();
@@ -140,7 +127,7 @@ function SheetPanel({ onClose, title, hideTitle, children, footer, width = 480, 
             </button>
           </div>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-4">{children}</div>
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-5 pb-4">{children}</div>
         {footer && <div className="shrink-0 px-5 pb-[calc(16px+var(--safe-bottom))] pt-2">{footer}</div>}
         {!footer && <div className="h-[var(--safe-bottom)] shrink-0" />}
       </m.div>

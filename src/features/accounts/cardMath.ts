@@ -2,10 +2,6 @@ import type { IsoDate } from '@/lib/dates';
 import type { Paise } from '@/lib/money';
 import type { LedgerEntry, Transaction, Uuid } from '@/domain/types';
 
-/**
- * Payments and credits that reduced a card's debt after a statement date (card payments,
- * refunds, cashback) — what has been paid against that statement so far.
- */
 export function paidSince(entries: readonly LedgerEntry[], transactions: readonly Transaction[], cardAccountId: Uuid, statementDate: IsoDate): Paise {
   const types = new Map(transactions.map((t) => [t.id, t.type]));
   let total = 0;

@@ -1,17 +1,11 @@
-/**
- * Add sheet — amount first.
- * 1. Type the amount on the keypad (or physical keyboard).
- * 2. Category, account and date are pre-filled with smart defaults (most likely category,
- *    last-used account, today). Adding a typical expense is: amount → Save.
- * 3. Save is optimistic: the sheet closes instantly; an Undo toast follows. A server failure rolls
- *    back and offers Retry with the SAME idempotency key (never a duplicate).
- */
 import { AnimatePresence, m } from 'motion/react';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { ArrowRight, CalendarDays, ChevronLeft, CreditCard, Delete, NotebookPen } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { ArrowRight, CalendarDays, ChevronLeft, CreditCard, Delete, Landmark, NotebookPen } from 'lucide-react';
 import { Sheet } from '@/components/ui/Sheet';
 import { Segmented } from '@/components/ui/Segmented';
 import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/bits';
 import { IconTile } from '@/components/ui/CategoryIcon';
 import { Money } from '@/components/ui/Money';
 import { springs } from '@/motion/springs';
@@ -45,6 +39,7 @@ export default function AddSheet({ open, preset, onClose }: { open: boolean; pre
   const snap = useSnapshot();
   const d = useDerived();
   const toast = useToast();
+  const navigate = useNavigate();
   const editing = preset.edit;
   const refundOf = preset.refundOf;
   const [key] = useState(() => idempotencyKey('tx'));
@@ -142,7 +137,6 @@ export default function AddSheet({ open, preset, onClose }: { open: boolean; pre
     });
   }, [canSave, accountId, mode, type, paise, date, toAccountId, note, categoryId, merchant, paymentCardId, d.cardById, refundOf, editing, store, key, onClose, toast]);
 
-  // Physical keyboard on desktop.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -164,7 +158,32 @@ export default function AddSheet({ open, preset, onClose }: { open: boolean; pre
     return () => window.removeEventListener('keydown', onKey);
   }, [open, panel, save]);
 
+  const hasAccounts = d.activeAccounts.some((a) => a.kind !== 'goal');
   const title = editing ? 'Edit transaction' : refundOf ? 'Add refund' : `Add ${mode}`;
+
+  if (!hasAccounts && !editing) {
+    return (
+      <Sheet open={open} onClose={onClose} title="Add an account first" hideTitle width={460} testId="add-sheet">
+        <EmptyState
+          icon={<Landmark size={24} />}
+          title="Add an account first"
+          body="Every expense comes out of an account, such as a bank account or your cash in hand."
+          action={
+            <Button
+              variant="primary"
+              onClick={() => {
+                onClose();
+                void navigate('/accounts?new=1');
+              }}
+              data-testid="add-first-account"
+            >
+              Add an account
+            </Button>
+          }
+        />
+      </Sheet>
+    );
+  }
 
   return (
     <Sheet open={open} onClose={onClose} title={title} hideTitle width={460} testId="add-sheet" initialFocus="[data-autofocus]">

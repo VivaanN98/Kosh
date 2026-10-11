@@ -1,8 +1,3 @@
-/**
- * Variant A — Stacked Wallet. Cards stack vertically (each peeks above the next). Selecting a card
- * lifts it to the top and tucks the rest into a compact stack below. Transform-only springs; the
- * container height is constant so nothing below it shifts.
- */
 import { AnimatePresence, m } from 'motion/react';
 import { useRef } from 'react';
 import { CardFace } from '@/components/cards/CardFace';
