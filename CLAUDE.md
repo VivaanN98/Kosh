@@ -49,6 +49,12 @@ Additions beyond the original spec, and why:
 | Web build for the Android app | `npm run build:native` (`--mode native`, uses `.env.native(.local)`) |
 | App icons from `public/icon.svg` | `npm run icons` |
 
+## Git workflow
+
+- Always make changes in the `dev` branch first. Switch to `dev` before editing, committing or pushing;
+  never commit directly to `main`.
+- `main` only receives changes that were already made on `dev`, and only when the user asks for it.
+
 ## Folder structure
 
 ```
